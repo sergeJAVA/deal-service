@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS contractor_role (
+    id VARCHAR(30) PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    category VARCHAR(30) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);

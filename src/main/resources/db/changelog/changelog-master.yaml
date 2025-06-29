@@ -1,0 +1,93 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-currency-table
+      author: sergej
+      sqlFile:
+        path: 001_create_currency_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
+      id: create-deal-status-table
+      author: sergej
+      sqlFile:
+        path: 002_create_deal_status_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
+      id: create-deal-type-table
+      author: sergej
+      sqlFile:
+        path: 003_create_deal_type_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
+      id: create-contractor-role-table
+      author: sergej
+      sqlFile:
+        path: 004_create_contractor_role_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
+      id: create-deal-table
+      author: sergej
+      sqlFile:
+        path: 005_create_deal_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
+      id: create-deal-sum-table
+      author: sergej
+      sqlFile:
+        path: 006_create_deal_sum_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
+      id: create-deal-contractor-table
+      author: sergej
+      sqlFile:
+        path: 007_create_deal_contractor_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
+      id: create-contractor-to-role-table
+      author: sergej
+      sqlFile:
+        path: 008_create_contractor_to_role_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
+      id: load-currency-data
+      author: sergej
+      changes:
+        - loadData:
+            file: classpath:db/changelog/data/currency.csv
+            tableName: currency
+            separator: ";"
+            encoding: UTF-8
+  - changeSet:
+      id: load-deal-status-data
+      author: sergej
+      changes:
+        - loadData:
+            file: classpath:db/changelog/data/deal_status.csv
+            tableName: deal_status
+            separator: ";"
+            encoding: UTF-8
+  - changeSet:
+      id: load-deal-type-data
+      author: sergej
+      changes:
+        - loadData:
+            file: classpath:db/changelog/data/deal_type.csv
+            tableName: deal_type
+            separator: ";"
+            encoding: UTF-8
+  - changeSet:
+      id: load-contractor-role-data
+      author: sergej
+      changes:
+        - loadData:
+            file: classpath:db/changelog/data/contractor_role.csv
+            tableName: contractor_role
+            separator: ";"
+            encoding: UTF-8
