@@ -14,6 +14,7 @@ public class DealContractorDto {
     private String contractorId;
     private String name;
     private Boolean main;
+    private String inn;
     private List<ContractorRoleDto> roles;
 
 }
