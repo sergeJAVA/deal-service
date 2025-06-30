@@ -4,6 +4,7 @@ import com.example.deal_service.model.*;
 import com.example.deal_service.model.dto.DealDto;
 import com.example.deal_service.model.dto.DealSumDto;
 import com.example.deal_service.model.mapper.DealMapper;
+import com.example.deal_service.model.mapper.DealSumMapper;
 import com.example.deal_service.repository.*;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -66,7 +67,7 @@ public class DealServiceImpl implements DealService {
 
         deal.setType(dealType);
         Deal savedDeal = dealRepository.save(deal);
-
+        DealDto savedDealDto = DealMapper.mapToDto(savedDeal);
         if (dealDto.getSum() != null) {
             DealSumDto sumDto = dealDto.getSum();
             Currency currency = currencyRepository.findByIdAndIsActiveTrue(sumDto.getCurrency())
@@ -87,9 +88,10 @@ public class DealServiceImpl implements DealService {
             dealSum.setIsActive(true);
 
             dealSumRepository.save(dealSum);
+            savedDealDto.setSum(DealSumMapper.toDto(dealSum));
         }
 
-        return DealMapper.mapToDto(savedDeal);
+        return savedDealDto;
     }
 
     @Override

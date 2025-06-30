@@ -11,6 +11,7 @@ import java.util.UUID;
 public class DealContractorDto {
 
     private UUID id;
+    private UUID dealId;
     private String contractorId;
     private String name;
     private Boolean main;
