@@ -1,9 +1,6 @@
 package com.example.deal_service.service;
 
-import com.example.deal_service.model.ContractorRole;
-import com.example.deal_service.model.ContractorRoleRequest;
-import com.example.deal_service.model.ContractorToRole;
-import com.example.deal_service.model.DealContractor;
+import com.example.deal_service.model.*;
 import com.example.deal_service.model.dto.ContractorRoleDto;
 import com.example.deal_service.model.mapper.ContractorRoleMapper;
 import com.example.deal_service.repository.ContractorRoleRepository;
@@ -48,11 +45,12 @@ public class ContractorRoleServiceImpl implements ContractorRoleService {
             }
         } else {
             // Создаем новую связь
+            ContractorToRoleId contractorToRoleId = new ContractorToRoleId(dealContractor.getId(), contractorRole.getId());
             link = new ContractorToRole();
             link.setContractor(dealContractor);
             link.setRole(contractorRole);
             link.setIsActive(true);
-
+            link.setId(contractorToRoleId);
         }
         contractorToRoleRepository.save(link);
         return ContractorRoleMapper.toDto(link.getRole());
@@ -75,4 +73,5 @@ public class ContractorRoleServiceImpl implements ContractorRoleService {
             contractorToRoleRepository.save(link);
         }
     }
+
 }
