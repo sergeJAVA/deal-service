@@ -11,6 +11,7 @@ import com.example.deal_service.repository.DealContractorRepository;
 import com.example.deal_service.repository.DealRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class DealContractorServiceImpl implements DealContractorService {
 
@@ -38,7 +40,7 @@ public class DealContractorServiceImpl implements DealContractorService {
 
             Optional<DealContractor> existingDealContractor = dealContractorList
                     .stream()
-                    .filter(dc -> dc.getId() == request.getId())
+                    .filter(dc -> dc.getId().equals(request.getId()))
                     .findFirst();
 
             if (existingDealContractor.isPresent()) {
@@ -47,13 +49,14 @@ public class DealContractorServiceImpl implements DealContractorService {
                 updatedDealContractor.setContractorId(request.getContractorId());
                 updatedDealContractor.setName(request.getName());
 
-                if (request.getInn() != null || !request.getInn().isEmpty()) {
+                if (request.getInn() != null) {
                     updatedDealContractor.setInn(request.getInn());
                 }
 
                 if (request.getMain()) {
                     updatedDealContractor.setMain(Boolean.TRUE);
                     // реализовать дальнейшую логику, т.к только один контрагент может иметь main = true
+                    dealContractorRepository.updateAllOthersMainToFalseForDeal(deal.getId(), updatedDealContractor.getId());
                 }
 
                 if (request.getRoles() != null || !request.getRoles().isEmpty()) {
@@ -61,7 +64,7 @@ public class DealContractorServiceImpl implements DealContractorService {
                 }
                 return DealContractorMapper.toDto(updatedDealContractor);
             } else {
-                throw new EntityNotFoundException("Deal с id " + request.getDealId() + " не найдена или неактивна.");
+                throw new EntityNotFoundException("DealContractor с id " + request.getId() + " не найден или неактивен.");
             }
         }
         DealContractor dealContractor = new DealContractor();
