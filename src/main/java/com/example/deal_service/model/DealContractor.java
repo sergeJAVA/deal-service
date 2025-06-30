@@ -36,7 +36,7 @@ public class DealContractor {
     @Column(name = "main", nullable = false)
     private Boolean main = false;
 
-    @OneToMany(mappedBy = "contractor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "contractor", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ContractorToRole> roles = new HashSet<>();
 
     @Column(name = "create_date", nullable = false, updatable = false)

@@ -1,5 +1,6 @@
 package com.example.deal_service.controller;
 
+import com.example.deal_service.model.DealContractorRequest;
 import com.example.deal_service.model.dto.DealContractorDto;
 import com.example.deal_service.service.DealContractorService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ public class DealContractorController {
     private final DealContractorService dealContractorService;
 
     @PutMapping("/save")
-    public ResponseEntity<DealContractorDto> saveDealContractor(@RequestBody DealContractorDto dto) {
-        DealContractorDto savedDto = dealContractorService.saveDealContractor(dto);
+    public ResponseEntity<DealContractorDto> saveDealContractor(@RequestBody DealContractorRequest request) {
+        DealContractorDto savedDto = dealContractorService.saveDealContractor(request);
         return ResponseEntity.ok(savedDto);
     }
 

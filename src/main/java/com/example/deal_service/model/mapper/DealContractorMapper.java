@@ -20,7 +20,6 @@ public final class DealContractorMapper {
         }
         DealContractorDto.DealContractorDtoBuilder builder = DealContractorDto.builder()
                 .id(dealContractor.getId())
-                .dealId(dealContractor.getDeal().getId())
                 .contractorId(dealContractor.getContractorId())
                 .name(dealContractor.getName())
                 .main(dealContractor.getMain());

@@ -1,5 +1,6 @@
-package com.example.deal_service.model.dto;
+package com.example.deal_service.model;
 
+import com.example.deal_service.model.dto.ContractorRoleDto;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,12 +9,14 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class DealContractorDto {
+public class DealContractorRequest {
 
     private UUID id;
+    private UUID dealId;
     private String contractorId;
     private String name;
     private Boolean main;
+    private String inn;
     private List<ContractorRoleDto> roles;
 
 }
