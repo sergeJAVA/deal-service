@@ -8,6 +8,8 @@ import com.example.deal_service.service.DealService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,4 +48,17 @@ public class DealController {
         return ResponseEntity.ok(resultPage);
     }
 
+    @PostMapping("/search/export")
+    public ResponseEntity<byte[]> exportDeals(@RequestBody DealSearchRequest searchRequest) {
+        byte[] excelBytes = dealService.exportDealsToExcel(searchRequest);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", "deals_export.xlsx");
+        headers.setContentLength(excelBytes.length);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excelBytes);
+    }
 }

@@ -3,6 +3,7 @@ package com.example.deal_service.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,9 +46,11 @@ public class Deal {
     private DealStatus status;
 
     @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
     private List<DealSum> dealSums = new ArrayList<>();
 
     @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
     private List<DealContractor> dealContractors = new ArrayList<>();
 
     @Column(name = "close_dt")

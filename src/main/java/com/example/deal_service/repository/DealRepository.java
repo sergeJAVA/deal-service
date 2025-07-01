@@ -16,11 +16,6 @@ public interface DealRepository extends JpaRepository<Deal, UUID>, JpaSpecificat
     Optional<Deal> findByIdAndIsActiveTrue(UUID id);
 
     @EntityGraph(attributePaths = {
-            "dealSums",
-            "dealSums.currency",
-//            "dealContractors",
-//            "dealContractors.roles",
-//            "dealContractors.roles.role",
             "status",
             "type"
     })
