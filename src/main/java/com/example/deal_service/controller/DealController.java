@@ -1,5 +1,6 @@
 package com.example.deal_service.controller;
 
+import com.example.deal_service.model.DealRequest;
 import com.example.deal_service.model.DealSearchRequest;
 import com.example.deal_service.model.DealStatusUpdateRequest;
 import com.example.deal_service.model.dto.DealDto;
@@ -26,8 +27,8 @@ public class DealController {
     }
 
     @PostMapping("/save") // Для сохранения/обновления
-    public ResponseEntity<DealDto> saveDeal(@RequestBody DealDto dealDto) {
-        DealDto savedDeal = dealService.saveDeal(dealDto);
+    public ResponseEntity<DealDto> saveDeal(@RequestBody DealRequest request) {
+        DealDto savedDeal = dealService.saveDeal(request);
         return ResponseEntity.ok(savedDeal);
     }
 

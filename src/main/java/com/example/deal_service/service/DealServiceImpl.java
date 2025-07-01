@@ -8,19 +8,30 @@ import com.example.deal_service.model.mapper.DealSumMapper;
 import com.example.deal_service.repository.*;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,53 +53,60 @@ public class DealServiceImpl implements DealService {
 
     @Override
     @Transactional
-    public DealDto saveDeal(DealDto dealDto) {
-        DealType dealType = dealTypeRepository.findByIdAndIsActiveTrue(dealDto.getType().getId())
-                .orElseThrow(() -> new EntityNotFoundException("DealType с id " + dealDto.getType().getId() + " не был найден или неактивен."));
+    public DealDto saveDeal(DealRequest request) {
+        DealType dealType = dealTypeRepository.findByIdAndIsActiveTrue(request.getType().getId())
+                .orElseThrow(() -> new EntityNotFoundException("DealType с id " + request.getType().getId() + " не был найден или неактивен."));
 
         DealStatus dealStatusDraft = dealStatusRepository.findByIdAndIsActiveTrue("DRAFT")
                 .orElseThrow(() -> new EntityNotFoundException("DealStatus \"DRAFT\" не был найден или неактивен."));
 
         Deal deal;
-        if (dealDto.getId() != null) {
-            deal = dealRepository.findByIdAndIsActiveTrue(dealDto.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Deal с id " + dealDto.getId() + " не найдена или неактивна для обновления."));
-            deal.setDescription(dealDto.getDescription());
-            deal.setAgreementNumber(dealDto.getAgreementNumber());
-            deal.setAgreementDate(dealDto.getAgreementDate());
-            deal.setAgreementStartDt(dealDto.getAgreementStartDt());
-            deal.setAvailabilityDate(dealDto.getAvailabilityDate());
-            deal.setCloseDt(dealDto.getCloseDt());
+        // Если передаётся id из DealRequest, то обновляем существующего
+        if (request.getId() != null) {
+            deal = dealRepository.findByIdAndIsActiveTrue(request.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Deal с id " + request.getId() + " не найдена или неактивна для обновления."));
+            deal.setDescription(request.getDescription());
+            deal.setAgreementNumber(request.getAgreementNumber());
+            deal.setAgreementDate(request.getAgreementDate());
+            deal.setAgreementStartDt(request.getAgreementStartDt());
+            deal.setAvailabilityDate(request.getAvailabilityDate());
+            deal.setCloseDt(request.getCloseDt());
             deal.setModifyDate(LocalDateTime.now());
         } else {
-            deal = DealMapper.toEntity(dealDto);
+            // иначе создаём нового
+            deal = DealMapper.dealRequestToEntity(request);
             deal.setStatus(dealStatusDraft);
         }
 
         deal.setType(dealType);
         Deal savedDeal = dealRepository.save(deal);
         DealDto savedDealDto = DealMapper.mapToDto(savedDeal);
-        if (dealDto.getSum() != null) {
-            DealSumDto sumDto = dealDto.getSum();
-            Currency currency = currencyRepository.findByIdAndIsActiveTrue(sumDto.getCurrency())
-                    .orElseThrow(() -> new EntityNotFoundException("Currency c id " + sumDto.getCurrency() + " не найдена или неактивна."));
+        if (request.getSum() != null) {
 
-            Optional<DealSum> existingMainSum = dealSumRepository.findByDealIdAndIsMainTrueAndIsActiveTrue(savedDeal.getId());
+            List<DealSumRequest> sumsRequest = request.getSum();
+            sumsRequest.forEach( sumRequest -> {
+                Currency currency = currencyRepository.findByIdAndIsActiveTrue(sumRequest.getCurrency())
+                        .orElseThrow(() -> new EntityNotFoundException("Currency с id " + sumRequest.getCurrency() + " не найдена или неактивна."));
 
-            DealSum dealSum;
-            if (existingMainSum.isPresent()) {
-                dealSum = existingMainSum.get();
-            } else {
-                dealSum = new DealSum();
-                dealSum.setDeal(savedDeal);
-                dealSum.setIsMain(true);
-            }
-            dealSum.setSum(sumDto.getValue());
-            dealSum.setCurrency(currency);
-            dealSum.setIsActive(true);
+                DealSum sum = new DealSum();
 
-            dealSumRepository.save(dealSum);
-            savedDealDto.setSum(DealSumMapper.toDto(dealSum));
+                sum.setDeal(savedDeal);
+                sum.setSum(sumRequest.getValue());
+                sum.setCurrency(currency);
+                sum.setIsMain(sumRequest.getIsMain());
+
+                DealSum savedDealSum = dealSumRepository.save(sum);
+                if (sum.getIsMain()) {
+                    savedDealDto.setSum(DealSumMapper.toDto(savedDealSum));
+                    List<DealSum> dealSums = savedDeal.getDealSums();
+                    dealSums.forEach(ds -> {
+                        if (!ds.getId().equals(savedDealSum.getId())) {
+                            ds.setIsMain(Boolean.FALSE);
+                        }
+                    });
+                }
+
+            });
         }
 
         return savedDealDto;

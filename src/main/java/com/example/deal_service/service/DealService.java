@@ -1,5 +1,6 @@
 package com.example.deal_service.service;
 
+import com.example.deal_service.model.DealRequest;
 import com.example.deal_service.model.DealSearchRequest;
 import com.example.deal_service.model.DealStatusUpdateRequest;
 import com.example.deal_service.model.dto.DealDto;
@@ -12,7 +13,7 @@ public interface DealService {
 
     DealDto getDealById(UUID id);
 
-    DealDto saveDeal(DealDto dealDto);
+    DealDto saveDeal(DealRequest request);
 
     DealDto changeDealStatus(UUID dealId, DealStatusUpdateRequest request);
 

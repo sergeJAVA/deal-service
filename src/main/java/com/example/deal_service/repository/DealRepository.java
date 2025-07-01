@@ -1,6 +1,10 @@
 package com.example.deal_service.repository;
 
 import com.example.deal_service.model.Deal;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -11,4 +15,14 @@ public interface DealRepository extends JpaRepository<Deal, UUID>, JpaSpecificat
 
     Optional<Deal> findByIdAndIsActiveTrue(UUID id);
 
+    @EntityGraph(attributePaths = {
+            "dealSums",
+            "dealSums.currency",
+//            "dealContractors",
+//            "dealContractors.roles",
+//            "dealContractors.roles.role",
+            "status",
+            "type"
+    })
+    Page<Deal> findAll(Specification<Deal> spec, Pageable pageable);
 }
