@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Репозиторий для сущности {@link ContractorToRole}.
+ */
 public interface ContractorToRoleRepository extends JpaRepository<ContractorToRole, ContractorToRoleId> {
 
     @Query("SELECT ctr FROM ContractorToRole ctr WHERE ctr.contractor.id = :contractorId AND ctr.role.id = :roleId")

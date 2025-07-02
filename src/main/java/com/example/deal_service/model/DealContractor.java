@@ -22,33 +22,57 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Сущность, представляющая контрагента в рамках конкретной сделки.
+ */
 @Entity
 @Table(name = "deal_contractor")
 @Getter
 @Setter
 public class DealContractor {
 
+    /**
+     * Уникальный идентификатор записи о контрагенте в сделке.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
+    /**
+     * Ссылка на сделку, к которой относится контрагент.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deal_id", referencedColumnName = "id", nullable = false)
     private Deal deal;
 
+    /**
+     * Идентификатор контрагента в системе.
+     */
     @Column(name = "contractor_id", length = 12, nullable = false)
     private String contractorId;
 
+    /**
+     * Наименование контрагента.
+     */
     @Column(name = "name", nullable = false)
     private String name;
 
+    /**
+     * ИНН контрагента.
+     */
     @Column(name = "inn")
     private String inn;
 
+    /**
+     * Флаг, указывающий, является ли контрагент основным по сделке.
+     */
     @Column(name = "main", nullable = false)
     private Boolean main = false;
 
+    /**
+     * Набор ролей, которые выполняет данный контрагент в сделке.
+     */
     @OneToMany(mappedBy = "contractor", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ContractorToRole> roles = new HashSet<>();
 

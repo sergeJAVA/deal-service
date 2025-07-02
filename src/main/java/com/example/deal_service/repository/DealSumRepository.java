@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Репозиторий для сущности {@link DealSum}.
+ */
 public interface DealSumRepository extends JpaRepository<DealSum, Long> {
 
     Optional<DealSum> findByIdAndIsActiveTrue(Long id);

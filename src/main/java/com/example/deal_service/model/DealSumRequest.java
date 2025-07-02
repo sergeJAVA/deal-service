@@ -11,6 +11,7 @@ public class DealSumRequest {
 
     private BigDecimal value;
     private String currency;
+    @Builder.Default
     private Boolean isMain = false;
 
 }

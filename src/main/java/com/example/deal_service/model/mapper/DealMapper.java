@@ -12,6 +12,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Утилитный класс-маппер для преобразования между сущностью Deal и DTO.
+ * Предоставляет статические методы для конвертации.
+ */
 public final class DealMapper {
 
     private DealMapper() {

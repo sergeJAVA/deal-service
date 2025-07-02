@@ -7,6 +7,9 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Сущность, представляющая валюту в рамках конкретной суммы.
+ */
 @Entity
 @Table(name = "currency")
 @Getter

@@ -7,6 +7,9 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Сущность, представляющая статус конкретной сделки.
+ */
 @Entity
 @Table(name = "deal_status")
 @Getter

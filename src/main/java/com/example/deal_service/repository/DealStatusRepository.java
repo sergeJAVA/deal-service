@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+/**
+ * Репозиторий для сущности {@link DealStatus}.
+ */
 public interface DealStatusRepository extends JpaRepository<DealStatus, String> {
 
     Optional<DealStatus> findByIdAndIsActiveTrue(String id);

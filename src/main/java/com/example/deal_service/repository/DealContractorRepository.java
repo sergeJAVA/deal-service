@@ -1,5 +1,6 @@
 package com.example.deal_service.repository;
 
+import com.example.deal_service.model.Currency;
 import com.example.deal_service.model.DealContractor;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,7 +11,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
+/**
+ * Репозиторий для сущности {@link DealContractor}.
+ */
 public interface DealContractorRepository extends JpaRepository<DealContractor, UUID> {
 
     Optional<DealContractor> findByIdAndIsActiveTrue(UUID id);

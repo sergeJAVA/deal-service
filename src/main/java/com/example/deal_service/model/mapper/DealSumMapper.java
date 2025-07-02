@@ -3,6 +3,10 @@ package com.example.deal_service.model.mapper;
 import com.example.deal_service.model.DealSum;
 import com.example.deal_service.model.dto.DealSumDto;
 
+/**
+ * Утилитный класс-маппер для преобразования между сущностью DealSum и DTO.
+ * Предоставляет статические методы для конвертации.
+ */
 public final class DealSumMapper {
 
     private DealSumMapper() {}

@@ -3,6 +3,10 @@ package com.example.deal_service.model.mapper;
 import com.example.deal_service.model.DealType;
 import com.example.deal_service.model.dto.DealTypeDto;
 
+/**
+ * Утилитный класс-маппер для преобразования между сущностью DealType и DTO.
+ * Предоставляет статические методы для конвертации.
+ */
 public final class DealTypeMapper {
 
     private DealTypeMapper() {}

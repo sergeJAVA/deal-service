@@ -18,8 +18,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Утилитный класс для генерации Excel (XLSX) файла со списком сделок.
+ */
 public class DealXlsxGenerator {
 
+    /**
+     * Создает и заполняет Excel-таблицу на основе списка сделок.
+     *
+     * @param deals Список сущностей {@link Deal} для экспорта.
+     * @return Массив байт, представляющий сгенерированный XLSX файл.
+     * @throws RuntimeException в случае ошибки ввода-вывода при создании файла.
+     */
     public static byte[] createAndFillDealXlsxTable(List<Deal> deals) {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()){
             Sheet sheet = workbook.createSheet("Deals");
@@ -113,4 +123,5 @@ public class DealXlsxGenerator {
             throw new RuntimeException("Ошибка при генерации Excel файла", e);
         }
     }
+
 }

@@ -10,6 +10,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Объект для передачи параметров поиска сделок.
+ * Используется в качестве тела запроса в API для фильтрации сделок.
+ */
 @Data
 @Builder
 public class DealSearchRequest {

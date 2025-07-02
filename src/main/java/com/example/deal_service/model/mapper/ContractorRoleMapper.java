@@ -4,6 +4,10 @@ import com.example.deal_service.model.ContractorRole;
 import com.example.deal_service.model.ContractorToRole;
 import com.example.deal_service.model.dto.ContractorRoleDto;
 
+/**
+ * Утилитный класс-маппер для преобразования между сущностью ContractorRole и DTO.
+ * Предоставляет статические методы для конвертации.
+ */
 public final class ContractorRoleMapper {
 
     private ContractorRoleMapper() {}

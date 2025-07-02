@@ -1,5 +1,6 @@
 package com.example.deal_service.service.impl;
 
+import com.example.deal_service.exception.DealException;
 import com.example.deal_service.model.DealRequest;
 import com.example.deal_service.model.Deal;
 import com.example.deal_service.model.DealType;
@@ -28,6 +29,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.LazyInitializationException;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,6 +44,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Реализация основного сервиса {@link DealService} для управления сделками.
+ * <p>
+ * Этот класс инкапсулирует всю бизнес-логику, связанную с созданием,
+ * поиском, обновлением, изменением статуса и экспортом сделок.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class DealServiceImpl implements DealService {
@@ -52,6 +61,11 @@ public class DealServiceImpl implements DealService {
     private final DealSumRepository dealSumRepository;
     private final CurrencyRepository currencyRepository;
 
+    /**
+     * {@inheritDoc}
+     * Поиск сущности {@link Deal} в БД по передаваемому ID
+     * @throws EntityNotFoundException если сделка с указанным ID не найдена или неактивна.
+     */
     @Override
     @Transactional(readOnly = true)
     public DealDto getDealById(UUID id) {
@@ -60,6 +74,17 @@ public class DealServiceImpl implements DealService {
         return DealMapper.mapToDto(deal);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Если в запросе {@code request} передан ID, метод обновляет существующую сделку.
+     * В противном случае создается новая сделка со статусом "DRAFT".
+     * Метод также обрабатывает связанные суммы ({@link DealSum}), гарантируя,
+     * что только одна из них может быть основной ({@code isMain = true}).
+     * </p>
+     * @throws EntityNotFoundException если связанные сущности (тип, статус, валюта) не найдены,
+     * или при попытке обновления не найдена сама сделка.
+     */
     @Override
     @Transactional
     public DealDto saveDeal(DealRequest request) {
@@ -121,14 +146,23 @@ public class DealServiceImpl implements DealService {
         return savedDealDto;
     }
 
+    /**
+     * {@inheritDoc}
+     * Метод для изменения статуса сделки
+     * <p>
+     * При изменении статуса на "CLOSED", метод также автоматически устанавливает
+     * дату закрытия сделки ({@code closeDt}) на текущее время.
+     * </p>
+     * @throws DealException если сделка или новый статус не найдены или неактивны.
+     */
     @Override
     @Transactional
     public DealDto changeDealStatus(UUID dealId, DealStatusUpdateRequest request) {
         Deal deal = dealRepository.findByIdAndIsActiveTrue(dealId)
-                .orElseThrow(() -> new EntityNotFoundException("Deal с id " + dealId + " не найдена или неактивна."));
+                .orElseThrow(() -> new DealException("Deal с id <<" + dealId + ">> не найдена или неактивна."));
 
         DealStatus newStatus = dealStatusRepository.findByIdAndIsActiveTrue(request.getNewStatusId())
-                .orElseThrow(() -> new EntityNotFoundException("Новый DealStatus с id " + request.getNewStatusId() + " не найден или неактивен."));
+                .orElseThrow(() -> new DealException("Новый DealStatus с id <<" + request.getNewStatusId() + ">> не найден или неактивен."));
 
         deal.setStatus(newStatus);
         deal.setModifyDate(LocalDateTime.now());
@@ -140,6 +174,14 @@ public class DealServiceImpl implements DealService {
         return DealMapper.mapToDto(updatedDeal);
     }
 
+    /**
+     * {@inheritDoc}
+     * Поиск сделки по фильтрации.
+     * <p>
+     * Использует {@link Specification} для построения динамического запроса
+     * на основе предоставленных фильтров.
+     * </p>
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<DealDto> searchDeals(DealSearchRequest request, Pageable pageable) {
@@ -147,6 +189,15 @@ public class DealServiceImpl implements DealService {
         return dealPage.map(DealMapper::mapToDto);
     }
 
+    /**
+     * {@inheritDoc}
+     * Поиск сделки по фильтрации для создания XLSX файла.
+     * <p>
+     * Перед передачей данных генератору Excel, метод принудительно инициализирует
+     * лениво загружаемые коллекции (например, контрагентов и их роли), чтобы избежать
+     * {@link LazyInitializationException}.
+     * </p>
+     */
     @Override
     @Transactional(readOnly = true)
     public byte[] exportDealsToExcel(DealSearchRequest searchRequest, Pagination pagination) {
@@ -161,6 +212,14 @@ public class DealServiceImpl implements DealService {
         return DealXlsxGenerator.createAndFillDealXlsxTable(deals);
     }
 
+    /**
+     * Приватный метод-помощник для построения объекта {@link Specification} для поиска сделок.
+     * <p>
+     * Трансформирует поля из {@link DealSearchRequest} в набор предикатов JPA Criteria API.
+     * </p>
+     * @param request Объект с критериями поиска.
+     * @return {@link Specification} для использования в запросе репозитория.
+     */
     private Specification<Deal> searchFilters(DealSearchRequest request) {
         Specification<Deal> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -247,6 +306,13 @@ public class DealServiceImpl implements DealService {
         return spec;
     }
 
+    /**
+     * Приватный метод-помощник для построения объекта {@link Specification} для экспорта сделок.
+     * Может содержать логику, отличающуюся от обычного поиска.
+     *
+     * @param searchRequest Объект с критериями поиска.
+     * @return {@link Specification} для использования в запросе репозитория.
+     */
     private Specification<Deal> searchFiltersForExport(DealSearchRequest searchRequest) {
 
         Specification<Deal> spec = (root, query, cb) -> cb.isTrue(root.get("isActive"));
@@ -321,6 +387,14 @@ public class DealServiceImpl implements DealService {
         return spec;
     }
 
+    /**
+     * Принудительно инициализирует лениво загружаемые коллекции у списка сделок.
+     * <p>
+     * Необходимо вызывать перед операциями, которые обращаются к этим коллекциям
+     * вне транзакционного контекста (например, при генерации отчетов).
+     * </p>
+     * @param deals Список сделок, требующих инициализации.
+     */
     private void dealInitialization(List<Deal> deals) {
         for (Deal deal : deals) {
             Hibernate.initialize(deal.getDealContractors()); // Инициализация коллекции dealContractors

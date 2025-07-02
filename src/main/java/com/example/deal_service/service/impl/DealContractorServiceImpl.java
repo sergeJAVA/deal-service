@@ -1,5 +1,6 @@
 package com.example.deal_service.service.impl;
 
+import com.example.deal_service.exception.DealContractorException;
 import com.example.deal_service.model.Deal;
 import com.example.deal_service.model.DealContractor;
 import com.example.deal_service.model.DealContractorRequest;
@@ -8,7 +9,6 @@ import com.example.deal_service.model.mapper.DealContractorMapper;
 import com.example.deal_service.repository.DealContractorRepository;
 import com.example.deal_service.repository.DealRepository;
 import com.example.deal_service.service.DealContractorService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +19,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Реализация сервиса {@link DealContractorService} для управления контрагентами в сделках.
+ * <p>
+ * Содержит логику для создания, обновления и "мягкого удаления" контрагентов,
+ * привязанных к определенной сделке.
+ * </p>
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -27,11 +34,21 @@ public class DealContractorServiceImpl implements DealContractorService {
     private final DealContractorRepository dealContractorRepository;
     private final DealRepository dealRepository;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Метод создает нового контрагента или обновляет существующего, если в запросе
+     * передан {@code id}. При установке флага {@code main = true}, метод обеспечивает,
+     * что только один контрагент в сделке будет главным.
+     * </p>
+     * @throws DealContractorException если сделка не найдена, или при попытке обновления
+     * не найден контрагент с указанным ID.
+     */
     @Override
     @Transactional
     public DealContractorDto saveDealContractor(DealContractorRequest request) {
         Deal deal = dealRepository.findByIdAndIsActiveTrue(request.getDealId())
-                .orElseThrow(() -> new EntityNotFoundException("Deal с id " + request.getDealId() + " не найдена или неактивна."));
+                .orElseThrow(() -> new DealContractorException("Deal с id <<" + request.getDealId() + ">> не найдена или неактивна."));
 
 
         if (request.getId() != null) {
@@ -62,7 +79,7 @@ public class DealContractorServiceImpl implements DealContractorService {
 
                 return DealContractorMapper.toDto(updatedDealContractor);
             } else {
-                throw new EntityNotFoundException("DealContractor с id " + request.getId() + " не найден или неактивен.");
+                throw new DealContractorException("DealContractor с id <<" + request.getId() + ">> не найден или неактивен.");
             }
         }
         DealContractor dealContractor = new DealContractor();
@@ -82,11 +99,19 @@ public class DealContractorServiceImpl implements DealContractorService {
         return DealContractorMapper.toDto(savedDealContractor);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Выполняет логическое удаление контрагента из сделки, устанавливая его флаг
+     * {@code isActive} в {@code false}.
+     * </p>
+     * @throws DealContractorException если контрагент с указанным ID не найден.
+     */
     @Override
     @Transactional
     public void deleteDealContractor(UUID id) {
         DealContractor dealContractor = dealContractorRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("DealContractor с id " + id + " не найден."));
+                .orElseThrow(() -> new DealContractorException("DealContractor с id <<" + id + ">> не найден."));
 
         if (dealContractor.getIsActive()) {
             dealContractor.setIsActive(false);
