@@ -4,7 +4,9 @@ import com.example.deal_service.model.Deal;
 import com.example.deal_service.model.DealContractor;
 import com.example.deal_service.model.DealRequest;
 import com.example.deal_service.model.DealSum;
-import com.example.deal_service.model.dto.*;
+import com.example.deal_service.model.dto.DealContractorDto;
+import com.example.deal_service.model.dto.DealDto;
+import com.example.deal_service.model.dto.DealSumDto;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,14 +50,14 @@ public final class DealMapper {
             return null;
         }
 
-        Deal deal = new Deal();
-
-        deal.setDescription(dealDto.getDescription());
-        deal.setAgreementNumber(dealDto.getAgreementNumber());
-        deal.setAgreementDate(dealDto.getAgreementDate());
-        deal.setAgreementStartDt(dealDto.getAgreementStartDt());
-        deal.setAvailabilityDate(dealDto.getAvailabilityDate());
-        deal.setCloseDt(dealDto.getCloseDt());
+        Deal deal = Deal.builder()
+                .description(dealDto.getDescription())
+                .agreementNumber(dealDto.getAgreementNumber())
+                .agreementDate(dealDto.getAgreementDate())
+                .agreementStartDt(dealDto.getAgreementStartDt())
+                .availabilityDate(dealDto.getAvailabilityDate())
+                .closeDt(dealDto.getCloseDt())
+                .build();
 
         return deal;
     }
@@ -65,14 +67,14 @@ public final class DealMapper {
             return null;
         }
 
-        Deal deal = new Deal();
-
-        deal.setDescription(request.getDescription());
-        deal.setAgreementNumber(request.getAgreementNumber());
-        deal.setAgreementDate(request.getAgreementDate());
-        deal.setAgreementStartDt(request.getAgreementStartDt());
-        deal.setAvailabilityDate(request.getAvailabilityDate());
-        deal.setCloseDt(request.getCloseDt());
+        Deal deal = Deal.builder()
+                .description(request.getDescription())
+                .agreementNumber(request.getAgreementNumber())
+                .agreementDate(request.getAgreementDate())
+                .agreementStartDt(request.getAgreementStartDt())
+                .availabilityDate(request.getAvailabilityDate())
+                .closeDt(request.getCloseDt())
+                .build();
 
         return deal;
     }

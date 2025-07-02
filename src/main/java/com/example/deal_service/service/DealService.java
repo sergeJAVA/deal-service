@@ -4,6 +4,7 @@ import com.example.deal_service.model.DealRequest;
 import com.example.deal_service.model.DealSearchRequest;
 import com.example.deal_service.model.DealStatusUpdateRequest;
 import com.example.deal_service.model.dto.DealDto;
+import com.example.deal_service.model.Pagination;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,5 +20,5 @@ public interface DealService {
 
     Page<DealDto> searchDeals(DealSearchRequest request, Pageable pageable);
 
-    byte[] exportDealsToExcel(DealSearchRequest searchRequest);
+    byte[] exportDealsToExcel(DealSearchRequest searchRequest, Pagination pagination);
 }

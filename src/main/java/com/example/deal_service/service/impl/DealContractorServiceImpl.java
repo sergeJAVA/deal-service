@@ -1,4 +1,4 @@
-package com.example.deal_service.service;
+package com.example.deal_service.service.impl;
 
 import com.example.deal_service.model.Deal;
 import com.example.deal_service.model.DealContractor;
@@ -7,6 +7,7 @@ import com.example.deal_service.model.dto.DealContractorDto;
 import com.example.deal_service.model.mapper.DealContractorMapper;
 import com.example.deal_service.repository.DealContractorRepository;
 import com.example.deal_service.repository.DealRepository;
+import com.example.deal_service.service.DealContractorService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j

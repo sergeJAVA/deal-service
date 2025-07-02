@@ -1,18 +1,33 @@
-package com.example.deal_service.service;
+package com.example.deal_service.service.impl;
 
-import com.example.deal_service.model.*;
+import com.example.deal_service.model.DealRequest;
+import com.example.deal_service.model.Deal;
+import com.example.deal_service.model.DealType;
+import com.example.deal_service.model.DealStatus;
+import com.example.deal_service.model.DealSumRequest;
+import com.example.deal_service.model.Currency;
+import com.example.deal_service.model.DealSum;
+import com.example.deal_service.model.DealStatusUpdateRequest;
+import com.example.deal_service.model.DealSearchRequest;
+import com.example.deal_service.model.DealContractor;
+import com.example.deal_service.model.ContractorToRole;
 import com.example.deal_service.model.dto.DealDto;
 import com.example.deal_service.model.mapper.DealMapper;
 import com.example.deal_service.model.mapper.DealSumMapper;
-import com.example.deal_service.repository.*;
+import com.example.deal_service.repository.DealRepository;
+import com.example.deal_service.repository.DealTypeRepository;
+import com.example.deal_service.repository.DealStatusRepository;
+import com.example.deal_service.repository.DealSumRepository;
+import com.example.deal_service.repository.CurrencyRepository;
 
+import com.example.deal_service.service.DealService;
+import com.example.deal_service.service.file.DealXlsxGenerator;
+import com.example.deal_service.model.Pagination;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,14 +37,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -86,12 +97,12 @@ public class DealServiceImpl implements DealService {
                 Currency currency = currencyRepository.findByIdAndIsActiveTrue(sumRequest.getCurrency())
                         .orElseThrow(() -> new EntityNotFoundException("Currency с id " + sumRequest.getCurrency() + " не найдена или неактивна."));
 
-                DealSum sum = new DealSum();
-
-                sum.setDeal(savedDeal);
-                sum.setSum(sumRequest.getValue());
-                sum.setCurrency(currency);
-                sum.setIsMain(sumRequest.getIsMain());
+                DealSum sum = DealSum.builder()
+                        .deal(savedDeal)
+                        .sum(sumRequest.getValue())
+                        .currency(currency)
+                        .isMain(sumRequest.getIsMain())
+                        .build();
 
                 DealSum savedDealSum = dealSumRepository.save(sum);
                 if (sum.getIsMain()) {
@@ -132,6 +143,25 @@ public class DealServiceImpl implements DealService {
     @Override
     @Transactional(readOnly = true)
     public Page<DealDto> searchDeals(DealSearchRequest request, Pageable pageable) {
+        Page<Deal> dealPage = dealRepository.findAll(searchFilters(request), pageable);
+        return dealPage.map(DealMapper::mapToDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportDealsToExcel(DealSearchRequest searchRequest, Pagination pagination) {
+        Pageable pageable = PageRequest.of(pagination.getPage(), pagination.getSize(), Sort.unsorted());
+        Specification<Deal> spec = searchFiltersForExport(searchRequest);
+
+        Page<Deal> dealsPage = dealRepository.findAll(spec, pageable);
+        List<Deal> deals = dealsPage.getContent();
+
+        dealInitialization(deals);
+
+        return DealXlsxGenerator.createAndFillDealXlsxTable(deals);
+    }
+
+    private Specification<Deal> searchFilters(DealSearchRequest request) {
         Specification<Deal> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -189,7 +219,6 @@ public class DealServiceImpl implements DealService {
 
             // Фильтр по поручителям (warranty_search)
             if (request.getWarrantySearch() != null && !request.getWarrantySearch().isEmpty()) {
-                // query.distinct(true);
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.join("dealContractors").get("contractorId")), "%" + request.getWarrantySearch().toLowerCase() + "%"),
                         cb.like(cb.lower(root.join("dealContractors").get("name")), "%" + request.getWarrantySearch().toLowerCase() + "%"),
@@ -215,18 +244,13 @@ public class DealServiceImpl implements DealService {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        Page<Deal> dealPage = dealRepository.findAll(spec, pageable);
-
-        return dealPage.map(DealMapper::mapToDto);
+        return spec;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public byte[] exportDealsToExcel(DealSearchRequest searchRequest) {
-        Pageable pageable = PageRequest.of(searchRequest.getPage(), searchRequest.getSize(), Sort.unsorted());
+    private Specification<Deal> searchFiltersForExport(DealSearchRequest searchRequest) {
+
         Specification<Deal> spec = (root, query, cb) -> cb.isTrue(root.get("isActive"));
 
-        // ... (твоя логика фильтрации - без изменений) ...
         if (searchRequest.getId() != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("id"), searchRequest.getId()));
         }
@@ -294,10 +318,10 @@ public class DealServiceImpl implements DealService {
                 return cb.equal(dealSums.get("currency").get("id"), searchRequest.getSumCurrency());
             });
         }
+        return spec;
+    }
 
-        Page<Deal> dealsPage = dealRepository.findAll(spec, pageable);
-        List<Deal> deals = dealsPage.getContent();
-
+    private void dealInitialization(List<Deal> deals) {
         for (Deal deal : deals) {
             Hibernate.initialize(deal.getDealContractors()); // Инициализация коллекции dealContractors
             if (deal.getDealContractors() != null) {
@@ -310,155 +334,6 @@ public class DealServiceImpl implements DealService {
                     }
                 }
             }
-        }
-
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()){
-            Sheet sheet = workbook.createSheet("Deals");
-
-            String[] headers = {
-                    "ИД сделки", "Описание", "Номер договора", "Дата договора", "Дата и время вступления соглашения в силу",
-            "Срок действия сделки", "Тип сделки", "Статус сделки", "Сумма сделки", "Наименование валюты", "Основная сумма сделки",
-            "Наименование контрагента", "ИНН контрагента", "Роли контрагента"
-            };
-
-            Row headerRow = sheet.createRow(0);
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                CellStyle headerStyle = workbook.createCellStyle();
-                Font font = workbook.createFont();
-                font.setBold(true);
-                headerStyle.setFont(font);
-                cell.setCellStyle(headerStyle);
-            }
-
-            int rowNum = 1;
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy");
-
-            for (Deal deal : deals) {
-                List<DealSum> sums = new ArrayList<>(deal.getDealSums());
-                List<DealContractor> contractors = new ArrayList<>(deal.getDealContractors());
-
-                boolean hasSums = !sums.isEmpty();
-                boolean hasContractors = !contractors.isEmpty();
-
-                // Флаг, чтобы базовая информация о сделке выводилась только один раз
-                boolean dealBaseInfoWritten = false;
-
-                // Блок 1: Вывод сделки + Суммы
-                if (hasSums) {
-                    for (int i = 0; i < sums.size(); i++) {
-                        Row row = sheet.createRow(rowNum++);
-                        // Заполняем базовую информацию о сделке только для первой строки (будь то первая сумма или первая строка без сумм, но с контрагентами)
-                        if (!dealBaseInfoWritten) {
-                            fillDealBaseColumns(row, deal, dateFormatter);
-                            dealBaseInfoWritten = true;
-                        } else {
-                            fillEmptyBaseColumns(row); // Остальные строки сделки - пустые базовые поля
-                        }
-
-                        // Заполняем информацию о текущей сумме
-                        fillDealSumColumns(row, sums.get(i));
-
-                        // Ячейки контрагентов здесь всегда пустые
-                        fillEmptyContractorColumns(row);
-                    }
-                }
-
-                // Блок 2: Контрагенты
-                // Этот блок должен идти после всех сумм, если они есть
-                if (hasContractors) {
-                    for (int i = 0; i < contractors.size(); i++) {
-                        Row row = sheet.createRow(rowNum++);
-                        // Заполняем базовую информацию о сделке только для первой строки (если она еще не была записана)
-                        if (!dealBaseInfoWritten) {
-                            fillDealBaseColumns(row, deal, dateFormatter);
-                            dealBaseInfoWritten = true;
-                        } else {
-                            fillEmptyBaseColumns(row); // Остальные строки сделки - пустые базовые поля
-                        }
-
-                        // Ячейки сумм здесь всегда пустые
-                        fillEmptySumColumns(row);
-
-                        // Заполняем информацию о текущем контрагенте
-                        fillDealContractorColumns(row, contractors.get(i));
-                    }
-                }
-
-                // Блок 3: Если нет ни сумм, ни контрагентов
-                // Этот случай будет обработан, если dealBaseInfoWritten так и остался false (т.е. ни один из вышеуказанных блоков не выполнился)
-                if (!dealBaseInfoWritten) {
-                    Row row = sheet.createRow(rowNum++);
-                    fillDealBaseColumns(row, deal, dateFormatter);
-                    fillEmptySumColumns(row);
-                    fillEmptyContractorColumns(row);
-                }
-            }
-
-            // Авторазмер колонок
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
-            workbook.write(out);
-            return out.toByteArray();
-
-        } catch (IOException e) {
-            throw new RuntimeException("Ошибка при генерации Excel файла", e);
-        }
-    }
-
-    // Вспомогательные методы (без изменений)
-    private void fillDealBaseColumns(Row row, Deal deal, DateTimeFormatter dateFormatter) {
-        row.createCell(0).setCellValue(deal.getId().toString());
-        row.createCell(1).setCellValue(deal.getDescription());
-        row.createCell(2).setCellValue(deal.getAgreementNumber());
-        row.createCell(3).setCellValue(deal.getAgreementDate() != null ? deal.getAgreementDate().format(dateFormatter) : "");
-        row.createCell(4).setCellValue(deal.getAgreementStartDt() != null ? deal.getAgreementStartDt().format(dateFormatter) : "");
-        row.createCell(5).setCellValue(deal.getAvailabilityDate() != null ? deal.getAvailabilityDate().format(dateFormatter) : "");
-        row.createCell(6).setCellValue(deal.getType() != null ? deal.getType().getName() : "");
-        row.createCell(7).setCellValue(deal.getStatus() != null ? deal.getStatus().getName() : "");
-    }
-
-    private void fillDealSumColumns(Row row, DealSum dealSum) {
-        row.createCell(8).setCellValue(dealSum.getSum() != null ? dealSum.getSum().doubleValue() : 0.0);
-        row.createCell(9).setCellValue(dealSum.getCurrency() != null ? dealSum.getCurrency().getName() : "");
-        row.createCell(10).setCellValue(dealSum.getIsMain() != null ? (dealSum.getIsMain() ? "Да" : "Нет") : "");
-    }
-
-    private void fillDealContractorColumns(Row row, DealContractor contractor) {
-        row.createCell(11).setCellValue(contractor.getName());
-        row.createCell(12).setCellValue(contractor.getInn());
-        String rolesString = "";
-        if (contractor.getRoles() != null && !contractor.getRoles().isEmpty()) {
-            rolesString = contractor.getRoles().stream()
-                    .filter(ContractorToRole::getIsActive)
-                    .map(link -> link.getRole() != null ? link.getRole().getName() : "")
-                    .filter(name -> !name.isEmpty())
-                    .collect(Collectors.joining(", "));
-        }
-        row.createCell(13).setCellValue(rolesString);
-    }
-
-    private void fillEmptyBaseColumns(Row row) {
-        for (int i = 0; i <= 7; i++) { // Колонки A (0) до H (7)
-            Cell cell = row.createCell(i);
-            cell.setCellValue("");
-        }
-    }
-
-    private void fillEmptySumColumns(Row row) {
-        for (int i = 8; i <= 10; i++) { // Колонки I (8) до K (10)
-            Cell cell = row.createCell(i);
-            cell.setCellValue("");
-        }
-    }
-
-    private void fillEmptyContractorColumns(Row row) {
-        for (int i = 11; i <= 13; i++) { // Колонки L (11) до N (13)
-            Cell cell = row.createCell(i);
-            cell.setCellValue("");
         }
     }
 

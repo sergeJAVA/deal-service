@@ -39,9 +39,6 @@ public class DealSearchRequest {
     private String borrowerSearch; // Для поиска по контрагентам с ролью BORROWER
     private String warrantySearch; // Для поиска по контрагентам с ролью WARRANTY
 
-    private int page;
-    private int size;
-
     private BigDecimal sumValue;
     private String sumCurrency;
 

@@ -1,11 +1,16 @@
-package com.example.deal_service.service;
+package com.example.deal_service.service.impl;
 
-import com.example.deal_service.model.*;
+import com.example.deal_service.model.ContractorRole;
+import com.example.deal_service.model.ContractorRoleRequest;
+import com.example.deal_service.model.ContractorToRole;
+import com.example.deal_service.model.ContractorToRoleId;
+import com.example.deal_service.model.DealContractor;
 import com.example.deal_service.model.dto.ContractorRoleDto;
 import com.example.deal_service.model.mapper.ContractorRoleMapper;
 import com.example.deal_service.repository.ContractorRoleRepository;
 import com.example.deal_service.repository.ContractorToRoleRepository;
 import com.example.deal_service.repository.DealContractorRepository;
+import com.example.deal_service.service.ContractorRoleService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
