@@ -4,6 +4,7 @@ import com.example.deal_service.model.DealType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+
 /**
  * Репозиторий для сущности {@link DealType}.
  */

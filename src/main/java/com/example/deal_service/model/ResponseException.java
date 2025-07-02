@@ -20,7 +20,7 @@ import lombok.Setter;
 public class ResponseException {
 
     /**
-     * Cообщение об ошибке, описывающее, что произошло.
+     * Сообщение об ошибке, описывающее, что произошло.
      */
     private String message;
 

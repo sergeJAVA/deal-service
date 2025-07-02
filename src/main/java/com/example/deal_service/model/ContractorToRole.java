@@ -1,6 +1,5 @@
 package com.example.deal_service.model;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;

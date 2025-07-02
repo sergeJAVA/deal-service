@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 /**
  * Утилитный класс-маппер для преобразования между сущностью DealContractor и DTO.
  * Предоставляет статические методы для конвертации.

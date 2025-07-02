@@ -21,7 +21,11 @@ import java.util.List;
 /**
  * Утилитный класс для генерации Excel (XLSX) файла со списком сделок.
  */
-public class DealXlsxGenerator {
+public final class DealXlsxGenerator {
+
+    private DealXlsxGenerator() {
+
+    }
 
     /**
      * Создает и заполняет Excel-таблицу на основе списка сделок.
@@ -31,7 +35,7 @@ public class DealXlsxGenerator {
      * @throws RuntimeException в случае ошибки ввода-вывода при создании файла.
      */
     public static byte[] createAndFillDealXlsxTable(List<Deal> deals) {
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()){
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Deals");
 
             String[] headers = DealFillerService.HEADERS;

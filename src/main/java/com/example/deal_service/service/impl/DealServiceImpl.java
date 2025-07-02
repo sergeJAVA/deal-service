@@ -118,7 +118,7 @@ public class DealServiceImpl implements DealService {
         if (request.getSum() != null) {
 
             List<DealSumRequest> sumsRequest = request.getSum();
-            sumsRequest.forEach( sumRequest -> {
+            sumsRequest.forEach(sumRequest -> {
                 Currency currency = currencyRepository.findByIdAndIsActiveTrue(sumRequest.getCurrency())
                         .orElseThrow(() -> new EntityNotFoundException("Currency с id " + sumRequest.getCurrency() + " не найдена или неактивна."));
 

@@ -14,7 +14,11 @@ import java.util.stream.Collectors;
  * Сервисный класс-помощник для {@link DealXlsxGenerator}, отвечающий за заполнение
  * ячеек в Excel-файле данными из сущностей.
  */
-public class DealFillerService {
+public final class DealFillerService {
+
+    private DealFillerService() {
+
+    }
 
     /**
      * Заголовки столбцов для Excel-файла.

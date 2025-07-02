@@ -21,4 +21,5 @@ public interface DealService {
     Page<DealDto> searchDeals(DealSearchRequest request, Pageable pageable);
 
     byte[] exportDealsToExcel(DealSearchRequest searchRequest, Pagination pagination);
+
 }

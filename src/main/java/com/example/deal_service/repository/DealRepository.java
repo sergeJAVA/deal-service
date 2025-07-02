@@ -1,7 +1,6 @@
 package com.example.deal_service.repository;
 
 import com.example.deal_service.model.Deal;
-import com.example.deal_service.model.DealContractor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -11,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.Optional;
 import java.util.UUID;
+
 /**
  * Репозиторий для сущности {@link Deal}.
  */
@@ -23,4 +23,5 @@ public interface DealRepository extends JpaRepository<Deal, UUID>, JpaSpecificat
             "type"
     })
     Page<Deal> findAll(Specification<Deal> spec, Pageable pageable);
+
 }

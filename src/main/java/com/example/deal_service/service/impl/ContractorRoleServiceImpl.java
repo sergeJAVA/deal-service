@@ -62,7 +62,7 @@ public class ContractorRoleServiceImpl implements ContractorRoleService {
                 return ContractorRoleMapper.toDto(link.getRole());
             } else {
                 // Если связь существует, но неактивна, активируем её
-                link.setIsActive(true);;
+                link.setIsActive(true);
             }
         } else {
             // Создаем новую связь
@@ -95,7 +95,8 @@ public class ContractorRoleServiceImpl implements ContractorRoleService {
                 .orElseThrow(() -> new ContractorRoleException("ContractorRole с id <<" + request.getRoleId() + ">> не найдена ли неактивна."));
 
         ContractorToRole link = contractorToRoleRepository.findByContractorIdAndRoleId(dealContractor.getId(), contractorRole.getId())
-                .orElseThrow(() -> new ContractorRoleException("Связь ContractorRole между контрагентом <<" + request.getDealContractorId() + ">> и ролью " + request.getRoleId() + " не найдена."));
+                .orElseThrow(() -> new ContractorRoleException("Связь ContractorRole между контрагентом <<" + request.getDealContractorId() + ">>" +
+                        " и ролью " + request.getRoleId() + " не найдена."));
 
         if (link.getIsActive()) {
             link.setIsActive(false);
