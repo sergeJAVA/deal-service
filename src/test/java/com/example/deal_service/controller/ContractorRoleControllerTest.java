@@ -1,9 +1,10 @@
 package com.example.deal_service.controller;
 
-import com.example.deal_service.exception.ContractorRoleException;
-import com.example.deal_service.model.ContractorRoleRequest;
-import com.example.deal_service.model.dto.ContractorRoleDto;
-import com.example.deal_service.service.ContractorRoleService;
+import com.internship.deal_service.controller.ContractorRoleController;
+import com.internship.deal_service.exception.ContractorRoleException;
+import com.internship.deal_service.model.dto.ContractorRoleRequest;
+import com.internship.deal_service.model.dto.ContractorRoleDto;
+import com.internship.deal_service.service.ContractorRoleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

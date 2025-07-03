@@ -1,10 +1,11 @@
 package com.example.deal_service.controller;
 
 
-import com.example.deal_service.exception.DealContractorException;
-import com.example.deal_service.model.DealContractorRequest;
-import com.example.deal_service.model.dto.DealContractorDto;
-import com.example.deal_service.service.DealContractorService;
+import com.internship.deal_service.controller.DealContractorController;
+import com.internship.deal_service.exception.DealContractorException;
+import com.internship.deal_service.model.dto.DealContractorRequest;
+import com.internship.deal_service.model.dto.DealContractorDto;
+import com.internship.deal_service.service.DealContractorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

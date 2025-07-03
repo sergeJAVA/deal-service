@@ -1,16 +1,16 @@
 package com.example.deal_service.controller;
 
-import com.example.deal_service.exception.DealException;
-import com.example.deal_service.model.DealRequest;
-import com.example.deal_service.model.DealSearchRequest;
-import com.example.deal_service.model.DealStatusUpdateRequest;
-import com.example.deal_service.model.Pagination;
-import com.example.deal_service.model.dto.DealDto;
-import com.example.deal_service.model.dto.DealStatusDto;
-import com.example.deal_service.model.dto.DealTypeDto;
-import com.example.deal_service.service.DealService;
+import com.internship.deal_service.controller.DealController;
+import com.internship.deal_service.exception.DealException;
+import com.internship.deal_service.model.DealRequest;
+import com.internship.deal_service.model.dto.DealSearchRequest;
+import com.internship.deal_service.model.dto.DealStatusUpdateRequest;
+import com.internship.deal_service.model.Pagination;
+import com.internship.deal_service.model.dto.DealDto;
+import com.internship.deal_service.model.dto.DealStatusDto;
+import com.internship.deal_service.model.dto.DealTypeDto;
+import com.internship.deal_service.service.DealService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
