@@ -1,13 +1,16 @@
 package com.example.deal_service.controller;
 
+import com.example.deal_service.exception.DealException;
 import com.example.deal_service.model.DealRequest;
 import com.example.deal_service.model.DealSearchRequest;
 import com.example.deal_service.model.DealStatusUpdateRequest;
 import com.example.deal_service.model.Pagination;
 import com.example.deal_service.model.dto.DealDto;
 import com.example.deal_service.model.dto.DealStatusDto;
+import com.example.deal_service.model.dto.DealTypeDto;
 import com.example.deal_service.service.DealService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -136,6 +139,71 @@ class DealControllerTest {
                 .andExpect(header().string("Content-Disposition", "form-data; name=\"attachment\"; filename=\"deals_export.xlsx\""))
                 .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
                 .andExpect(content().bytes(excelBytes));
+    }
+
+    @Test
+    void getDealById_shouldReturn404_whenDealNotFound() throws Exception {
+        UUID dealId = UUID.randomUUID();
+
+        when(dealService.getDealById(dealId))
+                .thenThrow(new DealException("Deal не найдена"));
+
+        mockMvc.perform(get("/deal/{id}", dealId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Deal не найдена"));
+    }
+
+    @Test
+    void saveDeal_shouldReturn404_whenRelatedEntityNotFound() throws Exception {
+        DealRequest request = DealRequest.builder()
+                .description("Тестовая сделка")
+                .type(DealTypeDto.builder().id("NOT_EXISTING_TYPE").build())
+                .build();
+
+        when(dealService.saveDeal(any(DealRequest.class)))
+                .thenThrow(new DealException("DealType не найден"));
+
+        mockMvc.perform(post("/deal/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("DealType не найден"));
+    }
+
+    @Test
+    void changeDealStatus_shouldReturn404_whenDealNotFound() throws Exception {
+        UUID dealId = UUID.randomUUID();
+        DealStatusUpdateRequest request = DealStatusUpdateRequest.builder()
+                .dealId(dealId)
+                .newStatusId("NEW_STATUS")
+                .build();
+
+        when(dealService.changeDealStatus(any(), any()))
+                .thenThrow(new DealException("Deal не найдена или неактивна"));
+
+        mockMvc.perform(patch("/deal/change/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Deal не найдена или неактивна"));
+    }
+
+    @Test
+    void changeDealStatus_shouldReturn404_whenStatusNotFound() throws Exception {
+        UUID dealId = UUID.randomUUID();
+        DealStatusUpdateRequest request = DealStatusUpdateRequest.builder()
+                .dealId(dealId)
+                .newStatusId("NON_EXISTENT_STATUS")
+                .build();
+
+        when(dealService.changeDealStatus(any(), any()))
+                .thenThrow(new DealException("Новый DealStatus не найден"));
+
+        mockMvc.perform(patch("/deal/change/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Новый DealStatus не найден"));
     }
 
 }

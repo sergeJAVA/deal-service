@@ -1,6 +1,7 @@
 package com.example.deal_service.controller;
 
 
+import com.example.deal_service.exception.DealContractorException;
 import com.example.deal_service.model.DealContractorRequest;
 import com.example.deal_service.model.dto.DealContractorDto;
 import com.example.deal_service.service.DealContractorService;
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -67,4 +69,67 @@ class DealContractorControllerTest {
                         .param("id", dealContractorId.toString()))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void saveDealContractor_whenContractorNotFound_shouldReturnNotFound() throws Exception {
+        UUID dealId = UUID.randomUUID();
+        UUID contractorId = UUID.randomUUID();
+        DealContractorRequest request = DealContractorRequest.builder()
+                .dealId(dealId)
+                .id(contractorId)
+                .name("Неизвестный")
+                .build();
+
+        when(dealContractorService.saveDealContractor(any()))
+                .thenThrow(new DealContractorException("Не найден"));
+
+        mockMvc.perform(put("/deal-contractor/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void saveDealContractor_whenDealNotFound_shouldReturnNotFound() throws Exception {
+        DealContractorRequest request = DealContractorRequest.builder()
+                .dealId(UUID.randomUUID())
+                .name("Тест")
+                .build();
+
+        when(dealContractorService.saveDealContractor(any()))
+                .thenThrow(new DealContractorException("Сделка не найдена"));
+
+        mockMvc.perform(put("/deal-contractor/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void saveDealContractor_withInvalidJson_shouldReturnBadRequest() throws Exception {
+        String invalidJson = "{ \"dealId\": \"неправильныйUUID\" }";
+
+        mockMvc.perform(put("/deal-contractor/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deleteDealContractor_whenNotFound_shouldReturnNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        doThrow(new DealContractorException("Не найден")).when(dealContractorService).deleteDealContractor(id);
+
+        mockMvc.perform(delete("/deal-contractor/delete")
+                        .param("id", id.toString()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteDealContractor_withoutId_shouldReturnBadRequest() throws Exception {
+        mockMvc.perform(delete("/deal-contractor/delete"))
+                .andExpect(status().isBadRequest());
+    }
+
 }
