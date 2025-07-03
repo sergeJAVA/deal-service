@@ -1,5 +1,6 @@
 package com.example.deal_service.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +18,11 @@ import java.util.UUID;
 public class ContractorRoleRequest {
 
     /** ID контрагента в сделке (DealContractor). */
+    @Schema(description = "ID контрагента в сделке.", example = "93410138-aeb4-4058-a7ff-551570a15a08")
     private UUID dealContractorId;
 
     /** ID роли, которую нужно добавить/удалить. */
+    @Schema(description = "ID роли, которую нужно добавить/удалить.", example = "WARRANTY")
     private String roleId;
 
 }
