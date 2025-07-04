@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,12 +39,6 @@ public class DealController {
 
     private final DealService dealService;
 
-    /**
-     * Получает сделку по её уникальному идентификатору.
-     *
-     * @param id ID сделки.
-     * @return DTO с данными сделки.
-     */
     @GetMapping("/{id}")
     @Operation(summary = "Получить сделку по ID", description = "Возвращает подробную информацию о сделке по её UUID.")
     @ApiResponses(value = {
@@ -59,12 +52,6 @@ public class DealController {
         return ResponseEntity.ok(deal); // Возвращаем 200 OK с DTO сделки
     }
 
-    /**
-     * Сохраняет (создает или обновляет) сделку.
-     *
-     * @param request Запрос с данными для сохранения сделки.
-     * @return DTO сохраненной сделки.
-     */
     @PostMapping("/save")
     @Operation(summary = "Сохранить сделку", description = "Создает новую сделку или обновляет существующую на основе переданных данных. " +
             "Указывать поле \"id\" в JSON только в том случае, если не собираетесь создавать новую сделку, а хотите изменить существующую.")
@@ -80,12 +67,6 @@ public class DealController {
         return ResponseEntity.ok(savedDeal);
     }
 
-    /**
-     * Изменяет статус сделки.
-     *
-     * @param request Запрос на обновление статуса, содержащий ID сделки и ID нового статуса.
-     * @return DTO обновленной сделки с новым статусом.
-     */
     @PatchMapping("/change/status")
     @Operation(summary = "Изменить статус сделки", description = "Обновляет статус для указанной сделки.")
     @ApiResponses(value = {
@@ -99,13 +80,6 @@ public class DealController {
         return ResponseEntity.ok(updatedDeal);
     }
 
-    /**
-     * Выполняет поиск сделок по заданным критериям с пагинацией.
-     *
-     * @param request  Объект с критериями поиска.
-     * @param pageable Параметры пагинации (page, size, sort).
-     * @return Страница с найденными сделками.
-     */
     @PostMapping("/search")
     @Operation(summary = "Поиск сделок", description = "Ищет сделки по различным критериям с поддержкой пагинации и сортировки.")
     @ApiResponses(value = {
@@ -115,19 +89,12 @@ public class DealController {
     })
     public ResponseEntity<Page<DealDto>> searchDeals(
             @RequestBody DealSearchRequest request,
-            Pageable pageable) {
-        Page<DealDto> resultPage = dealService.searchDeals(request, pageable);
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<DealDto> resultPage = dealService.searchDeals(request, new Pagination(page, size));
         return ResponseEntity.ok(resultPage);
     }
 
-    /**
-     * Экспортирует результаты поиска сделок в файл формата XLSX.
-     *
-     * @param searchRequest Критерии поиска для экспорта.
-     * @param page          Номер страницы для экспорта.
-     * @param size          Размер страницы для экспорта.
-     * @return Файл Excel в виде массива байт.
-     */
     @PostMapping("/search/export")
     @Operation(summary = "Экспорт сделок в Excel", description = "Формирует и возвращает XLSX файл с данными сделок по заданным критериям поиска.")
     @ApiResponses(value = {

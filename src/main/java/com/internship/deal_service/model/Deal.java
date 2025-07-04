@@ -18,12 +18,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -94,17 +93,17 @@ public class Deal {
      * Список сумм, связанных с этой сделкой.
      */
     @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 10)
+//    @BatchSize(size = 10)
     @Builder.Default
-    private List<DealSum> dealSums = new ArrayList<>();
+    private Set<DealSum> dealSums = new HashSet<>();
 
     /**
      * Список контрагентов, участвующих в этой сделке.
      */
     @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 10)
+//    @BatchSize(size = 10)
     @Builder.Default
-    private List<DealContractor> dealContractors = new ArrayList<>();
+    private Set<DealContractor> dealContractors = new HashSet<>();
 
     /**
      * Дата и время закрытия сделки.

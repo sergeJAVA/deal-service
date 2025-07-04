@@ -30,12 +30,6 @@ public class ContractorRoleController {
 
     private final ContractorRoleService contractorRoleService;
 
-    /**
-     * Добавляет роль контрагенту в сделке.
-     *
-     * @param request Запрос, содержащий ID контрагента сделки и ID роли.
-     * @return DTO с информацией о добавленной роли.
-     */
     @PostMapping("/add")
     @Operation(summary = "Добавить роль контрагенту", description = "Привязывает указанную роль к контрагенту в сделке.")
     @ApiResponses(value = {
@@ -50,12 +44,6 @@ public class ContractorRoleController {
         return ResponseEntity.ok(addedRole);
     }
 
-    /**
-     *  Логически удаляет роль у контрагента в сделке.
-     *
-     * @param request Запрос, содержащий ID контрагента сделки и ID роли для удаления.
-     * @return Ответ без содержимого (204 No Content).
-     */
     @DeleteMapping("/delete")
     @Operation(summary = "Удалить роль у контрагента", description = "Отвязывает указанную роль от контрагента в сделке.")
     @ApiResponses(value = {

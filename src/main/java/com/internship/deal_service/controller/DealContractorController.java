@@ -32,12 +32,6 @@ public class DealContractorController {
 
     private final DealContractorService dealContractorService;
 
-    /**
-     * Сохраняет (создает или обновляет) информацию о контрагенте в сделке.
-     *
-     * @param request Запрос с данными контрагента для сохранения.
-     * @return DTO сохраненного контрагента.
-     */
     @PutMapping("/save")
     @Operation(summary = "Сохранить контрагента в сделке", description = "Создает нового или обновляет существующего контрагента в рамках сделки." +
             " Указывать поле \"id\" в JSON только в том случае," +
@@ -54,12 +48,6 @@ public class DealContractorController {
         return ResponseEntity.ok(savedDto);
     }
 
-    /**
-     * Удаляет контрагента из сделки по его ID.
-     *
-     * @param id Уникальный идентификатор контрагента в сделке (DealContractor ID).
-     * @return Ответ без содержимого (204 No Content).
-     */
     @DeleteMapping("/delete")
     @Operation(summary = "Удалить контрагента из сделки", description = "Удаляет контрагента из сделки по его уникальному идентификатору.")
     @ApiResponses(value = {

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -55,6 +55,6 @@ public class DealDto {
     private LocalDateTime closeDt;
 
     /** Список контрагентов по сделке. */
-    private List<DealContractorDto> contractors;
+    private Set<DealContractorDto> contractors;
 
 }

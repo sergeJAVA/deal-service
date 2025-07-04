@@ -19,8 +19,14 @@ public interface DealRepository extends JpaRepository<Deal, UUID>, JpaSpecificat
     Optional<Deal> findByIdAndIsActiveTrue(UUID id);
 
     @EntityGraph(attributePaths = {
+            "type",
             "status",
-            "type"
+            "dealSums",
+            "dealSums.currency",
+            "dealContractors",
+            "dealContractors.roles",
+            "dealContractors.roles.role"
+
     })
     Page<Deal> findAll(Specification<Deal> spec, Pageable pageable);
 

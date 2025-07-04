@@ -9,7 +9,7 @@ import com.internship.deal_service.model.dto.DealDto;
 import com.internship.deal_service.model.dto.DealSumDto;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -83,7 +83,7 @@ public final class DealMapper {
         return deal;
     }
 
-    private static DealSumDto mapMainDealSum(List<DealSum> dealSums) {
+    private static DealSumDto mapMainDealSum(Set<DealSum> dealSums) {
         if (dealSums == null || dealSums.isEmpty()) {
             return null;
         }
@@ -95,14 +95,14 @@ public final class DealMapper {
                 .orElse(null);
     }
 
-    private static List<DealContractorDto> mapDealContractors(List<DealContractor> dealContractors) {
+    private static Set<DealContractorDto> mapDealContractors(Set<DealContractor> dealContractors) {
         if (dealContractors == null || dealContractors.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
         return dealContractors.stream()
                 .filter(DealContractor::getIsActive) // Фильтр по активным контрагентам
                 .map(DealContractorMapper::toDto)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
 }

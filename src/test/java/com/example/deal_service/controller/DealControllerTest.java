@@ -113,7 +113,7 @@ class DealControllerTest {
         DealDto dealDto = DealDto.builder().id(UUID.randomUUID()).build();
         Page<DealDto> dealPage = new PageImpl<>(Collections.singletonList(dealDto), pageable, 1);
 
-        when(dealService.searchDeals(any(DealSearchRequest.class), any(Pageable.class))).thenReturn(dealPage);
+        when(dealService.searchDeals(any(DealSearchRequest.class), any(Pagination.class))).thenReturn(dealPage);
 
         mockMvc.perform(post("/deal/search?page=0&size=10")
                         .contentType(MediaType.APPLICATION_JSON)

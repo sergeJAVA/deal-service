@@ -30,7 +30,6 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.LazyInitializationException;
-import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -132,7 +132,7 @@ public class DealServiceImpl implements DealService {
                 DealSum savedDealSum = dealSumRepository.save(sum);
                 if (sum.getIsMain()) {
                     savedDealDto.setSum(DealSumMapper.toDto(savedDealSum));
-                    List<DealSum> dealSums = savedDeal.getDealSums();
+                    Set<DealSum> dealSums = savedDeal.getDealSums();
                     dealSums.forEach(ds -> {
                         if (!ds.getId().equals(savedDealSum.getId())) {
                             ds.setIsMain(Boolean.FALSE);
@@ -184,8 +184,8 @@ public class DealServiceImpl implements DealService {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<DealDto> searchDeals(DealSearchRequest request, Pageable pageable) {
-        Page<Deal> dealPage = dealRepository.findAll(searchFilters(request), pageable);
+    public Page<DealDto> searchDeals(DealSearchRequest request, Pagination pagination) {
+        Page<Deal> dealPage = dealRepository.findAll(searchFilters(request), PageRequest.of(pagination.getPage(), pagination.getSize()));
         return dealPage.map(DealMapper::mapToDto);
     }
 
@@ -206,8 +206,6 @@ public class DealServiceImpl implements DealService {
 
         Page<Deal> dealsPage = dealRepository.findAll(spec, pageable);
         List<Deal> deals = dealsPage.getContent();
-
-        dealInitialization(deals);
 
         return DealXlsxGenerator.createAndFillDealXlsxTable(deals);
     }
@@ -385,30 +383,6 @@ public class DealServiceImpl implements DealService {
             });
         }
         return spec;
-    }
-
-    /**
-     * Принудительно инициализирует лениво загружаемые коллекции у списка сделок.
-     * <p>
-     * Необходимо вызывать перед операциями, которые обращаются к этим коллекциям
-     * вне транзакционного контекста (например, при генерации отчетов).
-     * </p>
-     * @param deals Список сделок, требующих инициализации.
-     */
-    private void dealInitialization(List<Deal> deals) {
-        for (Deal deal : deals) {
-            Hibernate.initialize(deal.getDealContractors()); // Инициализация коллекции dealContractors
-            if (deal.getDealContractors() != null) {
-                for (DealContractor contractor : deal.getDealContractors()) {
-                    Hibernate.initialize(contractor.getRoles()); // Инициализация коллекции ролей контрагента
-                    if (contractor.getRoles() != null) {
-                        for (ContractorToRole roleLink : contractor.getRoles()) {
-                            Hibernate.initialize(roleLink.getRole()); // Инициализация самой роли
-                        }
-                    }
-                }
-            }
-        }
     }
 
 }
