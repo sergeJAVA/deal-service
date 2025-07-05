@@ -29,7 +29,6 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.LazyInitializationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -61,11 +60,6 @@ public class DealServiceImpl implements DealService {
     private final DealSumRepository dealSumRepository;
     private final CurrencyRepository currencyRepository;
 
-    /**
-     * {@inheritDoc}
-     * Поиск сущности {@link Deal} в БД по передаваемому ID
-     * @throws EntityNotFoundException если сделка с указанным ID не найдена или неактивна.
-     */
     @Override
     @Transactional(readOnly = true)
     public DealDto getDealById(UUID id) {
@@ -74,17 +68,6 @@ public class DealServiceImpl implements DealService {
         return DealMapper.mapToDto(deal);
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Если в запросе {@code request} передан ID, метод обновляет существующую сделку.
-     * В противном случае создается новая сделка со статусом "DRAFT".
-     * Метод также обрабатывает связанные суммы ({@link DealSum}), гарантируя,
-     * что только одна из них может быть основной ({@code isMain = true}).
-     * </p>
-     * @throws EntityNotFoundException если связанные сущности (тип, статус, валюта) не найдены,
-     * или при попытке обновления не найдена сама сделка.
-     */
     @Override
     @Transactional
     public DealDto saveDeal(DealRequest request) {
@@ -146,15 +129,6 @@ public class DealServiceImpl implements DealService {
         return savedDealDto;
     }
 
-    /**
-     * {@inheritDoc}
-     * Метод для изменения статуса сделки
-     * <p>
-     * При изменении статуса на "CLOSED", метод также автоматически устанавливает
-     * дату закрытия сделки ({@code closeDt}) на текущее время.
-     * </p>
-     * @throws DealException если сделка или новый статус не найдены или неактивны.
-     */
     @Override
     @Transactional
     public DealDto changeDealStatus(UUID dealId, DealStatusUpdateRequest request) {
@@ -174,14 +148,6 @@ public class DealServiceImpl implements DealService {
         return DealMapper.mapToDto(updatedDeal);
     }
 
-    /**
-     * {@inheritDoc}
-     * Поиск сделки по фильтрации.
-     * <p>
-     * Использует {@link Specification} для построения динамического запроса
-     * на основе предоставленных фильтров.
-     * </p>
-     */
     @Override
     @Transactional(readOnly = true)
     public Page<DealDto> searchDeals(DealSearchRequest request, Pagination pagination) {
@@ -189,10 +155,6 @@ public class DealServiceImpl implements DealService {
         return dealPage.map(DealMapper::mapToDto);
     }
 
-    /**
-     * {@inheritDoc}
-     * Поиск сделки по фильтрации для создания XLSX файла.
-     */
     @Override
     @Transactional(readOnly = true)
     public byte[] exportDealsToExcel(DealSearchRequest searchRequest, Pagination pagination) {

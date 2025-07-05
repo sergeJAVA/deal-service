@@ -33,15 +33,6 @@ public class ContractorRoleServiceImpl implements ContractorRoleService {
     private final ContractorRoleRepository contractorRoleRepository;
     private final ContractorToRoleRepository contractorToRoleRepository;
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Добавляет роль контрагенту. Если связь уже существует, но неактивна,
-     * метод активирует её. Если связь уже существует и активна, никаких действий не производится.
-     * В противном случае создается новая активная связь.
-     * </p>
-     * @throws ContractorRoleException если контрагент или роль не найдены или неактивны.
-     */
     @Override
     @Transactional
     public ContractorRoleDto addRoleToContractor(ContractorRoleRequest request) {
@@ -77,14 +68,6 @@ public class ContractorRoleServiceImpl implements ContractorRoleService {
         return ContractorRoleMapper.toDto(link.getRole());
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Выполняет логическое удаление, деактивируя связь между контрагентом и ролью,
-     * устанавливая флаг {@code isActive} в {@code false}. Физического удаления из БД не происходит.
-     * </p>
-     * @throws ContractorRoleException если контрагент, роль или их связь не найдены.
-     */
     @Override
     @Transactional
     public void deleteRoleFromContractor(ContractorRoleRequest request) {

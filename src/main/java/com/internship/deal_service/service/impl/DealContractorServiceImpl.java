@@ -34,16 +34,6 @@ public class DealContractorServiceImpl implements DealContractorService {
     private final DealContractorRepository dealContractorRepository;
     private final DealRepository dealRepository;
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Метод создает нового контрагента или обновляет существующего, если в запросе
-     * передан {@code id}. При установке флага {@code main = true}, метод обеспечивает,
-     * что только один контрагент в сделке будет главным.
-     * </p>
-     * @throws DealContractorException если сделка не найдена, или при попытке обновления
-     * не найден контрагент с указанным ID.
-     */
     @Override
     @Transactional
     public DealContractorDto saveDealContractor(DealContractorRequest request) {
@@ -99,14 +89,6 @@ public class DealContractorServiceImpl implements DealContractorService {
         return DealContractorMapper.toDto(savedDealContractor);
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Выполняет логическое удаление контрагента из сделки, устанавливая его флаг
-     * {@code isActive} в {@code false}.
-     * </p>
-     * @throws DealContractorException если контрагент с указанным ID не найден.
-     */
     @Override
     @Transactional
     public void deleteDealContractor(UUID id) {
