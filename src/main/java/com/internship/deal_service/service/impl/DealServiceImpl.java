@@ -192,11 +192,6 @@ public class DealServiceImpl implements DealService {
     /**
      * {@inheritDoc}
      * Поиск сделки по фильтрации для создания XLSX файла.
-     * <p>
-     * Перед передачей данных генератору Excel, метод принудительно инициализирует
-     * лениво загружаемые коллекции (например, контрагентов и их роли), чтобы избежать
-     * {@link LazyInitializationException}.
-     * </p>
      */
     @Override
     @Transactional(readOnly = true)
