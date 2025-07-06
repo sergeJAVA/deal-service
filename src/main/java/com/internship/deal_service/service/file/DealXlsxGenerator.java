@@ -4,12 +4,16 @@ import com.internship.deal_service.model.Deal;
 import com.internship.deal_service.model.DealContractor;
 import com.internship.deal_service.model.DealSum;
 import com.internship.deal_service.service.DealFillerService;
+import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
@@ -44,11 +48,7 @@ public final class DealXlsxGenerator {
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
-                CellStyle headerStyle = workbook.createCellStyle();
-                Font font = workbook.createFont();
-                font.setBold(true);
-                headerStyle.setFont(font);
-                cell.setCellStyle(headerStyle);
+                cell.setCellStyle(headerStyle(workbook));
             }
 
             int rowNum = 1;
@@ -61,58 +61,33 @@ public final class DealXlsxGenerator {
                 boolean hasSums = !sums.isEmpty();
                 boolean hasContractors = !contractors.isEmpty();
 
-                // Флаг, чтобы базовая информация о сделке выводилась только один раз
-                boolean dealBaseInfoWritten = false;
+                // Блок 1: Первая строка сущности Deal
+                Row dealBaseRow = sheet.createRow(rowNum++);
+                DealFillerService.fillDealBaseColumns(dealBaseRow, deal, dateFormatter, greenCellStyle(workbook));
+                DealFillerService.fillEmptySumColumns(dealBaseRow, greenCellStyle(workbook));
+                DealFillerService.fillEmptyContractorColumns(dealBaseRow, greenCellStyle(workbook));
 
-                // Блок 1: Вывод сделки + Суммы
+                // Блок 2: Суммы
                 if (hasSums) {
                     for (int i = 0; i < sums.size(); i++) {
                         Row row = sheet.createRow(rowNum++);
-                        // Заполняем базовую информацию о сделке только для первой строки (будь то первая сумма или первая строка без сумм, но с контрагентами)
-                        if (!dealBaseInfoWritten) {
-                            DealFillerService.fillDealBaseColumns(row, deal, dateFormatter);
-                            dealBaseInfoWritten = true;
-                        } else {
-                            DealFillerService.fillEmptyBaseColumns(row); // Остальные строки сделки - пустые базовые поля
-                        }
-
-                        // Заполняем информацию о текущей сумме
-                        DealFillerService.fillDealSumColumns(row, sums.get(i));
-
-                        // Ячейки контрагентов здесь всегда пустые
-                        DealFillerService.fillEmptyContractorColumns(row);
+                        DealFillerService.fillEmptyBaseColumns(row, defaultStyle(workbook));
+                        DealFillerService.fillDealSumColumns(row, sums.get(i), orangeStyle(workbook));
+                        DealFillerService.fillEmptyContractorColumns(row, orangeStyle(workbook));
                     }
                 }
 
-                // Блок 2: Контрагенты
+                // Блок 3: Контрагенты
                 // Этот блок должен идти после всех сумм, если они есть
                 if (hasContractors) {
                     for (int i = 0; i < contractors.size(); i++) {
                         Row row = sheet.createRow(rowNum++);
-                        // Заполняем базовую информацию о сделке только для первой строки (если она еще не была записана)
-                        if (!dealBaseInfoWritten) {
-                            DealFillerService.fillDealBaseColumns(row, deal, dateFormatter);
-                            dealBaseInfoWritten = true;
-                        } else {
-                            DealFillerService.fillEmptyBaseColumns(row); // Остальные строки сделки - пустые базовые поля
-                        }
-
-                        // Ячейки сумм здесь всегда пустые
-                        DealFillerService.fillEmptySumColumns(row);
-
-                        // Заполняем информацию о текущем контрагенте
-                        DealFillerService.fillDealContractorColumns(row, contractors.get(i));
+                        DealFillerService.fillEmptyBaseColumns(row, defaultStyle(workbook));
+                        DealFillerService.fillEmptySumColumns(row, defaultStyle(workbook));
+                        DealFillerService.fillDealContractorColumns(row, contractors.get(i), blueCellStyle(workbook));
                     }
                 }
 
-                // Блок 3: Если нет ни сумм, ни контрагентов
-                // Этот случай будет обработан, если dealBaseInfoWritten так и остался false (т.е. ни один из вышеуказанных блоков не выполнился)
-                if (!dealBaseInfoWritten) {
-                    Row row = sheet.createRow(rowNum++);
-                    DealFillerService.fillDealBaseColumns(row, deal, dateFormatter);
-                    DealFillerService.fillEmptySumColumns(row);
-                    DealFillerService.fillEmptyContractorColumns(row);
-                }
             }
 
             // Авторазмер колонок
@@ -120,12 +95,82 @@ public final class DealXlsxGenerator {
                 sheet.autoSizeColumn(i);
             }
 
+            int descriptionColumnIndex = 1;
+            sheet.setColumnWidth(descriptionColumnIndex, 256 * 20);
+
+            int statusColumnIndex = 7;
+            sheet.setColumnWidth(statusColumnIndex, 256 * 20);
+
             workbook.write(out);
             return out.toByteArray();
 
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при генерации Excel файла", e);
         }
+    }
+
+    private static CellStyle greenCellStyle(Workbook workbook) {
+        CellStyle greenCellStyle = workbook.createCellStyle();
+        XSSFColor customGreenColor = new XSSFColor(new byte[]{(byte) 198, (byte) 239, (byte) 206}, null);
+        greenCellStyle.setFillForegroundColor(customGreenColor);
+        greenCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        greenCellStyle.setBorderBottom(BorderStyle.THIN);
+        greenCellStyle.setBorderTop(BorderStyle.THIN);
+        greenCellStyle.setBorderLeft(BorderStyle.THIN);
+        greenCellStyle.setBorderRight(BorderStyle.THIN);
+
+        return greenCellStyle;
+    }
+
+    private static CellStyle blueCellStyle(Workbook workbook) {
+        CellStyle blueCellStyle = workbook.createCellStyle();
+        XSSFColor customBlueColor = new XSSFColor(new byte[]{(byte) 217, (byte) 228, (byte) 240}, null);
+        blueCellStyle.setFillForegroundColor(customBlueColor);
+        blueCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        blueCellStyle.setBorderBottom(BorderStyle.THIN);
+        blueCellStyle.setBorderTop(BorderStyle.THIN);
+        blueCellStyle.setBorderLeft(BorderStyle.THIN);
+        blueCellStyle.setBorderRight(BorderStyle.THIN);
+
+        return blueCellStyle;
+    }
+
+    private static CellStyle headerStyle(Workbook workbook) {
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        headerStyle.setFont(font);
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBorderTop(BorderStyle.THIN);
+        headerStyle.setBorderLeft(BorderStyle.THIN);
+        headerStyle.setBorderRight(BorderStyle.THIN);
+
+        return headerStyle;
+    }
+
+    private static CellStyle defaultStyle(Workbook workbook) {
+        CellStyle defaultCellStyle = workbook.createCellStyle();
+        defaultCellStyle.setBorderBottom(BorderStyle.THIN);
+        defaultCellStyle.setBorderTop(BorderStyle.THIN);
+        defaultCellStyle.setBorderLeft(BorderStyle.THIN);
+        defaultCellStyle.setBorderRight(BorderStyle.THIN);
+
+        return defaultCellStyle;
+    }
+
+    private static CellStyle orangeStyle(Workbook workbook) {
+        CellStyle orangeCellStyle = workbook.createCellStyle();
+        XSSFColor customOrangeColor = new XSSFColor(new byte[]{(byte) 255, (byte) 235, (byte) 204}, null);
+        orangeCellStyle.setFillForegroundColor(customOrangeColor);
+        orangeCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        orangeCellStyle.setBorderBottom(BorderStyle.THIN);
+        orangeCellStyle.setBorderTop(BorderStyle.THIN);
+        orangeCellStyle.setBorderLeft(BorderStyle.THIN);
+        orangeCellStyle.setBorderRight(BorderStyle.THIN);
+
+        return orangeCellStyle;
     }
 
 }

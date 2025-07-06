@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -89,6 +90,37 @@ public class DealServiceImpl implements DealService {
             deal.setAvailabilityDate(request.getAvailabilityDate());
             deal.setCloseDt(request.getCloseDt());
             deal.setModifyDate(LocalDateTime.now());
+            deal.setType(dealType);
+
+            if (request.getSum() != null && !deal.getDealSums().isEmpty()) {
+
+                deal.getDealSums().clear();
+
+                Set<DealSumRequest> sumsRequest = new HashSet<>(request.getSum());
+                sumsRequest.forEach(sumRequest -> {
+                    Currency currency = currencyRepository.findByIdAndIsActiveTrue(sumRequest.getCurrency())
+                            .orElseThrow(() -> new EntityNotFoundException("Currency с id " + sumRequest.getCurrency() + " не найдена или неактивна."));
+
+                    DealSum sum = DealSum.builder()
+                            .deal(deal)
+                            .sum(sumRequest.getValue())
+                            .currency(currency)
+                            .isMain(sumRequest.getIsMain())
+                            .build();
+
+                    DealSum savedDealSum = dealSumRepository.save(sum);
+                    deal.getDealSums().add(savedDealSum);
+                    if (savedDealSum.getIsMain()) {
+                        deal.getDealSums().forEach(dealSum ->  {
+                            if (!dealSum.getId().equals(savedDealSum.getId())) {
+                                dealSum.setIsMain(Boolean.FALSE);
+                            }
+                        });
+                    }
+                });
+
+                return DealMapper.mapToDto(deal);
+            }
         } else {
             // иначе создаём нового
             deal = DealMapper.dealRequestToEntity(request);
@@ -98,6 +130,7 @@ public class DealServiceImpl implements DealService {
         deal.setType(dealType);
         Deal savedDeal = dealRepository.save(deal);
         DealDto savedDealDto = DealMapper.mapToDto(savedDeal);
+
         if (request.getSum() != null) {
 
             List<DealSumRequest> sumsRequest = request.getSum();

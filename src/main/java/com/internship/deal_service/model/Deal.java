@@ -93,7 +93,6 @@ public class Deal {
      * Список сумм, связанных с этой сделкой.
      */
     @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @BatchSize(size = 10)
     @Builder.Default
     private Set<DealSum> dealSums = new HashSet<>();
 
@@ -101,7 +100,6 @@ public class Deal {
      * Список контрагентов, участвующих в этой сделке.
      */
     @OneToMany(mappedBy = "deal", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @BatchSize(size = 10)
     @Builder.Default
     private Set<DealContractor> dealContractors = new HashSet<>();
 
