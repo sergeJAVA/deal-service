@@ -1,0 +1,15 @@
+package com.internship.deal_service.repository;
+
+import com.internship.deal_service.model.ContractorRole;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+/**
+ * Репозиторий для сущности {@link ContractorRole}.
+ */
+public interface ContractorRoleRepository extends JpaRepository<ContractorRole, String> {
+
+    Optional<ContractorRole> findByIdAndIsActiveTrue(String id);
+
+}
