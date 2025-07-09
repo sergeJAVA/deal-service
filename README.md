@@ -9,8 +9,8 @@
 - **Java 21+**
 - **Spring Boot**
 - **PostgreSQL**
-- **Liquibase** (для инициализации схемы БД)
-- **Docker** (для запуска PostgreSQL)
+- **Liquibase**
+- **Docker**
 - **Apache POI**
 
 ---
