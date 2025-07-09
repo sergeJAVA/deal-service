@@ -10,7 +10,7 @@
 - **Spring Boot**
 - **PostgreSQL**
 - **Liquibase** (для инициализации схемы БД)
-- **Docker** (опционально, для запуска PostgreSQL)
+- **Docker** (для запуска PostgreSQL)
 - **Apache POI**
 
 ---
