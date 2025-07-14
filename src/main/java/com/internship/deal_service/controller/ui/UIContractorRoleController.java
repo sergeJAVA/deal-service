@@ -1,4 +1,4 @@
-package com.internship.deal_service.controller;
+package com.internship.deal_service.controller.ui;
 
 import com.internship.deal_service.model.dto.ContractorRoleDto;
 import com.internship.deal_service.model.dto.ContractorRoleRequest;
