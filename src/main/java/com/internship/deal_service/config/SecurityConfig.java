@@ -32,13 +32,17 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers("/ui/deal/id",
-                                        "/ui/deal/save",
-                                        "/ui/deal/change/status"
-                                        ).hasAnyRole("SUPERUSER", "DEAL_SUPERUSER")
                                 .requestMatchers("/ui/deal/search",
                                         "/ui/deal/search/export").hasAnyRole("SUPERUSER", "DEAL_SUPERUSER",
                                         "OVERDRAFT_USER", "CREDIT_USER")
+                                .requestMatchers("/ui/deal/{id}",
+                                        "/ui/deal/save",
+                                        "/ui/deal/change/status",
+                                        "/ui/contractor-to-role/add",
+                                        "/ui/contractor-to-role/delete",
+                                        "/ui/deal-contractor/save",
+                                        "/ui/deal-contractor/delete"
+                                        ).hasAnyRole("SUPERUSER", "DEAL_SUPERUSER")
                                 .anyRequest().permitAll())
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headersConfigurer ->

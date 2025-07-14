@@ -9,12 +9,13 @@ import com.internship.deal_service.model.security.TokenAuthentication;
 import com.internship.deal_service.model.security.TokenData;
 import com.internship.deal_service.service.DealService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +31,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/ui/deal")
 @RequiredArgsConstructor
+@Slf4j
 public class UIDealController {
 
     private final DealService dealService;
@@ -57,40 +59,41 @@ public class UIDealController {
             @RequestBody DealSearchRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal TokenAuthentication authentication) {
+            Authentication authentication) {
 
         Page<DealDto> resultPage = null;
-
-        TokenData tokenData = authentication.getTokenData();
+        log.info("{}", authentication);
+        TokenAuthentication tokenAuthentication = (TokenAuthentication) authentication;
+        TokenData tokenData = tokenAuthentication.getTokenData();
 
         List<String> authenticatedUserRoles = tokenData.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
-        if (authenticatedUserRoles.contains("SUPERUSER") ||
-                authenticatedUserRoles.contains("DEAL_SUPERUSER")) {
+        if (authenticatedUserRoles.contains("ROLE_SUPERUSER") ||
+                authenticatedUserRoles.contains("ROLE_DEAL_SUPERUSER")) {
 
             resultPage = dealService.searchDeals(request, new Pagination(page, size));
 
         } else {
-            if (authenticatedUserRoles.contains("OVERDRAFT_USER") &&
-                authenticatedUserRoles.contains("CREDIT_USER")) {
+            if (authenticatedUserRoles.contains("ROLE_OVERDRAFT_USER") &&
+                authenticatedUserRoles.contains("ROLE_CREDIT_USER")) {
 
                 DealSearchRequest filterRequest = DealSearchRequest.builder()
                         .typeIds(List.of("OVERDRAFT", "CREDIT"))
                         .build();
 
                 resultPage = dealService.searchDeals(filterRequest, new Pagination(page, size));
-            } else if (authenticatedUserRoles.contains("OVERDRAFT_USER") &&
-                    !authenticatedUserRoles.contains("CREDIT_USER")) {
+            } else if (authenticatedUserRoles.contains("ROLE_OVERDRAFT_USER") &&
+                    !authenticatedUserRoles.contains("ROLE_CREDIT_USER")) {
 
                 DealSearchRequest filterRequest = DealSearchRequest.builder()
                         .typeIds(List.of("OVERDRAFT"))
                         .build();
 
                 resultPage = dealService.searchDeals(filterRequest, new Pagination(page, size));
-            } else if (authenticatedUserRoles.contains("CREDIT_USER") &&
-                    !authenticatedUserRoles.contains("OVERDRAFT_USER")) {
+            } else if (authenticatedUserRoles.contains("ROLE_CREDIT_USER") &&
+                    !authenticatedUserRoles.contains("ROLE_OVERDRAFT_USER")) {
 
                 DealSearchRequest filterRequest = DealSearchRequest.builder()
                         .typeIds(List.of("CREDIT"))
@@ -107,24 +110,25 @@ public class UIDealController {
     public ResponseEntity<byte[]> exportDeals(@RequestBody DealSearchRequest searchRequest,
                                               @RequestParam(defaultValue = "0") int page,
                                               @RequestParam(defaultValue = "10") int size,
-                                              @AuthenticationPrincipal TokenAuthentication authentication) {
+                                              Authentication authentication) {
 
         byte[] excelBytes = null;
 
-        TokenData tokenData = authentication.getTokenData();
+        TokenAuthentication tokenAuthentication = (TokenAuthentication) authentication;
+        TokenData tokenData = tokenAuthentication.getTokenData();
 
         List<String> authenticatedUserRoles = tokenData.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        if (authenticatedUserRoles.contains("SUPERUSER") ||
-                authenticatedUserRoles.contains("DEAL_SUPERUSER")) {
+        if (authenticatedUserRoles.contains("ROLE_SUPERUSER") ||
+                authenticatedUserRoles.contains("ROLE_DEAL_SUPERUSER")) {
 
             excelBytes = dealService.exportDealsToExcel(searchRequest, new Pagination(page, size));
 
         } else {
-            if (authenticatedUserRoles.contains("OVERDRAFT_USER") &&
+            if (authenticatedUserRoles.contains("ROLE_OVERDRAFT_USER") &&
                     authenticatedUserRoles.contains("CREDIT_USER")) {
 
                 DealSearchRequest filterRequest = DealSearchRequest.builder()
@@ -132,16 +136,16 @@ public class UIDealController {
                         .build();
 
                 excelBytes = dealService.exportDealsToExcel(filterRequest, new Pagination(page, size));
-            } else if (authenticatedUserRoles.contains("OVERDRAFT_USER") &&
-                    !authenticatedUserRoles.contains("CREDIT_USER")) {
+            } else if (authenticatedUserRoles.contains("ROLE_OVERDRAFT_USER") &&
+                    !authenticatedUserRoles.contains("ROLE_CREDIT_USER")) {
 
                 DealSearchRequest filterRequest = DealSearchRequest.builder()
                         .typeIds(List.of("OVERDRAFT"))
                         .build();
 
                 excelBytes = dealService.exportDealsToExcel(filterRequest, new Pagination(page, size));
-            } else if (authenticatedUserRoles.contains("CREDIT_USER") &&
-                    !authenticatedUserRoles.contains("OVERDRAFT_USER")) {
+            } else if (authenticatedUserRoles.contains("ROLE_CREDIT_USER") &&
+                    !authenticatedUserRoles.contains("ROLE_OVERDRAFT_USER")) {
 
                 DealSearchRequest filterRequest = DealSearchRequest.builder()
                         .typeIds(List.of("CREDIT"))

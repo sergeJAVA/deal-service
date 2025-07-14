@@ -47,8 +47,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 log.info("Token has expired. Please log in again!");
                 return;
             }
+            log.info("TokenAuthentication is created.");
             TokenAuthentication authentication = new TokenAuthentication(jwtService.parseToken(token));
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            log.info("TokenAuthentication added to the context");
+            log.info("{}", authentication);
         }
 
         filterChain.doFilter(request, response);

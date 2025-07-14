@@ -20,3 +20,9 @@ spring:
 
 jwt:
   secret: secretkeyPasswordForAuth12312312312313213123123sdfsdf
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

@@ -16,6 +16,16 @@ import java.util.UUID;
  */
 public interface DealRepository extends JpaRepository<Deal, UUID>, JpaSpecificationExecutor<Deal> {
 
+    @EntityGraph(attributePaths = {
+            "type",
+            "status",
+            "dealSums",
+            "dealSums.currency",
+            "dealContractors",
+            "dealContractors.roles",
+            "dealContractors.roles.role"
+
+    })
     Optional<Deal> findByIdAndIsActiveTrue(UUID id);
 
     @EntityGraph(attributePaths = {
