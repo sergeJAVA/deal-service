@@ -1,4 +1,4 @@
-package com.internship.deal_service.config;
+package com.internship.deal_service.config.security;
 
 import com.internship.deal_service.config.filter.JwtRequestFilter;
 import com.internship.deal_service.entryPoint.CustomAccessDeniedHandler;
