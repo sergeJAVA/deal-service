@@ -8,6 +8,10 @@ import com.internship.deal_service.model.dto.DealStatusUpdateRequest;
 import com.internship.deal_service.model.security.TokenAuthentication;
 import com.internship.deal_service.model.security.TokenData;
 import com.internship.deal_service.service.DealService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,28 +36,60 @@ import java.util.UUID;
 @RequestMapping("/ui/deal")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Управление сделками c аутентификацией",
+        description = "API для создания, получения, поиска и изменения статуса сделок, которое требует аутентификации")
 public class UIDealController {
 
     private final DealService dealService;
 
+    @Operation(summary = "Получить сделку по ID",
+            description = "Возвращает детали сделки по ее уникальному идентификатору. Требует роли SUPERUSER или DEAL_SUPERUSER.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Сделка успешно найдена"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный доступ"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)"),
+            @ApiResponse(responseCode = "404", description = "Сделка не найдена")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<DealDto> getDealById(@PathVariable UUID id) {
         DealDto deal = dealService.getDealById(id);
         return ResponseEntity.ok(deal); // Возвращаем 200 OK с DTO сделки
     }
 
+    @Operation(summary = "Сохранить или обновить сделку",
+            description = "Создает новую сделку или обновляет существующую. Требует роли SUPERUSER или DEAL_SUPERUSER.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Сделка успешно сохранена/обновлена"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный доступ"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)")
+    })
     @PostMapping("/save")
     public ResponseEntity<DealDto> saveDeal(@RequestBody DealRequest request) {
         DealDto savedDeal = dealService.saveDeal(request);
         return ResponseEntity.ok(savedDeal);
     }
 
+    @Operation(summary = "Изменить статус сделки",
+            description = "Изменяет статус существующей сделки. Требует роли SUPERUSER или DEAL_SUPERUSER.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Статус сделки успешно изменен"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный доступ"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)"),
+            @ApiResponse(responseCode = "404", description = "Сделка не найдена")
+    })
     @PatchMapping("/change/status")
     public ResponseEntity<DealDto> changeDealStatus(@RequestBody DealStatusUpdateRequest request) {
         DealDto updatedDeal = dealService.changeDealStatus(request.getDealId(), request);
         return ResponseEntity.ok(updatedDeal);
     }
 
+    @Operation(summary = "Поиск сделок",
+            description = "Выполняет поиск сделок с учетом фильтров и пагинации. Доступ зависит от ролей пользователя.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список сделок успешно получен"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный доступ"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)")
+    })
     @PostMapping("/search")
     public ResponseEntity<Page<DealDto>> searchDeals(
             @RequestBody DealSearchRequest request,
@@ -106,6 +142,13 @@ public class UIDealController {
         return ResponseEntity.ok(resultPage);
     }
 
+    @Operation(summary = "Экспорт сделок в Excel",
+            description = "Экспортирует сделки в формате Excel с учетом фильтров и пагинации. Доступ зависит от ролей пользователя.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Файл Excel успешно сгенерирован и отправлен"),
+            @ApiResponse(responseCode = "401", description = "Неавторизованный доступ"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)")
+    })
     @PostMapping("/search/export")
     public ResponseEntity<byte[]> exportDeals(@RequestBody DealSearchRequest searchRequest,
                                               @RequestParam(defaultValue = "0") int page,
