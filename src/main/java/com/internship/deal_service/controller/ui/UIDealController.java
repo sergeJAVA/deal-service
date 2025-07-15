@@ -64,8 +64,13 @@ public class UIDealController {
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)")
     })
     @PostMapping("/save")
-    public ResponseEntity<DealDto> saveDeal(@RequestBody DealRequest request) {
-        DealDto savedDeal = dealService.saveDeal(request);
+    public ResponseEntity<DealDto> saveDeal(@RequestBody DealRequest request,
+                                            Authentication authentication) {
+
+        TokenAuthentication tokenAuthentication = (TokenAuthentication) authentication;
+        TokenData tokenData = tokenAuthentication.getTokenData();
+
+        DealDto savedDeal = dealService.saveDealWithUserId(request, tokenData.getId().toString());
         return ResponseEntity.ok(savedDeal);
     }
 

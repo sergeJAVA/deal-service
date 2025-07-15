@@ -164,6 +164,101 @@ public class DealServiceImpl implements DealService {
 
     @Override
     @Transactional
+    public DealDto saveDealWithUserId(DealRequest request, String userId) {
+        DealType dealType = dealTypeRepository.findByIdAndIsActiveTrue(request.getType().getId())
+                .orElseThrow(() -> new EntityNotFoundException("DealType с id " + request.getType().getId() + " не был найден или неактивен."));
+
+        DealStatus dealStatusDraft = dealStatusRepository.findByIdAndIsActiveTrue("DRAFT")
+                .orElseThrow(() -> new EntityNotFoundException("DealStatus \"DRAFT\" не был найден или неактивен."));
+
+        Deal deal;
+        // Если передаётся id из DealRequest, то обновляем существующего
+        if (request.getId() != null) {
+            deal = dealRepository.findByIdAndIsActiveTrue(request.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Deal с id " + request.getId() + " не найдена или неактивна для обновления."));
+            deal.setDescription(request.getDescription());
+            deal.setAgreementNumber(request.getAgreementNumber());
+            deal.setAgreementDate(request.getAgreementDate());
+            deal.setAgreementStartDt(request.getAgreementStartDt());
+            deal.setAvailabilityDate(request.getAvailabilityDate());
+            deal.setCloseDt(request.getCloseDt());
+            deal.setModifyDate(LocalDateTime.now());
+            deal.setModifyUserId(userId);
+            deal.setType(dealType);
+
+            if (request.getSum() != null && !deal.getDealSums().isEmpty()) {
+
+                deal.getDealSums().clear();
+
+                Set<DealSumRequest> sumsRequest = new HashSet<>(request.getSum());
+                sumsRequest.forEach(sumRequest -> {
+                    Currency currency = currencyRepository.findByIdAndIsActiveTrue(sumRequest.getCurrency())
+                            .orElseThrow(() -> new EntityNotFoundException("Currency с id " + sumRequest.getCurrency() + " не найдена или неактивна."));
+
+                    DealSum sum = DealSum.builder()
+                            .deal(deal)
+                            .sum(sumRequest.getValue())
+                            .currency(currency)
+                            .isMain(sumRequest.getIsMain())
+                            .build();
+
+                    DealSum savedDealSum = dealSumRepository.save(sum);
+                    deal.getDealSums().add(savedDealSum);
+                    if (savedDealSum.getIsMain()) {
+                        deal.getDealSums().forEach(dealSum ->  {
+                            if (!dealSum.getId().equals(savedDealSum.getId())) {
+                                dealSum.setIsMain(Boolean.FALSE);
+                            }
+                        });
+                    }
+                });
+
+                return DealMapper.mapToDto(deal);
+            }
+        } else {
+            // иначе создаём нового
+            deal = DealMapper.dealRequestToEntity(request);
+            deal.setStatus(dealStatusDraft);
+            deal.setCreateUserId(userId);
+        }
+
+        deal.setType(dealType);
+        Deal savedDeal = dealRepository.save(deal);
+        DealDto savedDealDto = DealMapper.mapToDto(savedDeal);
+
+        if (request.getSum() != null) {
+
+            List<DealSumRequest> sumsRequest = request.getSum();
+            sumsRequest.forEach(sumRequest -> {
+                Currency currency = currencyRepository.findByIdAndIsActiveTrue(sumRequest.getCurrency())
+                        .orElseThrow(() -> new EntityNotFoundException("Currency с id " + sumRequest.getCurrency() + " не найдена или неактивна."));
+
+                DealSum sum = DealSum.builder()
+                        .deal(savedDeal)
+                        .sum(sumRequest.getValue())
+                        .currency(currency)
+                        .isMain(sumRequest.getIsMain())
+                        .build();
+
+                DealSum savedDealSum = dealSumRepository.save(sum);
+                if (sum.getIsMain()) {
+                    savedDealDto.setSum(DealSumMapper.toDto(savedDealSum));
+                    Set<DealSum> dealSums = savedDeal.getDealSums();
+                    dealSums.forEach(ds -> {
+                        if (!ds.getId().equals(savedDealSum.getId())) {
+                            ds.setIsMain(Boolean.FALSE);
+                        }
+                    });
+                }
+
+            });
+        }
+
+        return savedDealDto;
+    }
+
+    @Override
+    @Transactional
     public DealDto changeDealStatus(UUID dealId, DealStatusUpdateRequest request) {
         Deal deal = dealRepository.findByIdAndIsActiveTrue(dealId)
                 .orElseThrow(() -> new DealException("Deal с id <<" + dealId + ">> не найдена или неактивна."));

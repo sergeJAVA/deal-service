@@ -63,4 +63,6 @@ public interface DealService {
      */
     byte[] exportDealsToExcel(DealSearchRequest searchRequest, Pagination pagination);
 
+    DealDto saveDealWithUserId(DealRequest request, String userId);
+
 }

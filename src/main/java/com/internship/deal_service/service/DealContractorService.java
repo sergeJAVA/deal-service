@@ -20,6 +20,8 @@ public interface DealContractorService {
      */
     DealContractorDto saveDealContractor(DealContractorRequest request);
 
+    DealContractorDto saveDealContractorWithUserId(DealContractorRequest request, String userId);
+
     /**
      * {@inheritDoc}
      * <p>
