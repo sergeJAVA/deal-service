@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,6 +39,7 @@ public class UIDealContractorController {
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)")
     })
     @PutMapping("/save")
+    @PreAuthorize("hasAnyRole('SUPERUSER', 'DEAL_SUPERUSER')")
     public ResponseEntity<DealContractorDto> saveDealContractor(@RequestBody DealContractorRequest request,
                                                                 Authentication authentication) {
 
@@ -56,6 +58,7 @@ public class UIDealContractorController {
             @ApiResponse(responseCode = "404", description = "Контрагент не найден")
     })
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyRole('SUPERUSER', 'DEAL_SUPERUSER')")
     public ResponseEntity<Void> deleteDealContractor(@RequestParam UUID id) {
         dealContractorService.deleteDealContractor(id);
         return ResponseEntity.noContent().build();

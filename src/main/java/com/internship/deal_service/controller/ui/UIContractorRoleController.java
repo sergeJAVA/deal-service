@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +34,7 @@ public class UIContractorRoleController {
             @ApiResponse(responseCode = "404", description = "Контрагент или роль не найдены")
     })
     @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('SUPERUSER', 'DEAL_SUPERUSER')")
     public ResponseEntity<ContractorRoleDto> addRoleToContractor(@RequestBody ContractorRoleRequest request) {
         ContractorRoleDto addedRole = contractorRoleService.addRoleToContractor(request);
         return ResponseEntity.ok(addedRole);
@@ -47,6 +49,7 @@ public class UIContractorRoleController {
             @ApiResponse(responseCode = "404", description = "Контрагент или роль не найдены")
     })
     @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyRole('SUPERUSER', 'DEAL_SUPERUSER')")
     public ResponseEntity<Void> deleteRoleFromContractor(@RequestBody ContractorRoleRequest request) {
         contractorRoleService.deleteRoleFromContractor(request);
         return ResponseEntity.noContent().build();
