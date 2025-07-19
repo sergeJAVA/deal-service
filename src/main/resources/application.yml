@@ -17,3 +17,12 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/changelog-master.yaml
 #    drop-first: true
+
+jwt:
+  secret: secretkeyPasswordForAuth12312312312313213123123sdfsdf
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

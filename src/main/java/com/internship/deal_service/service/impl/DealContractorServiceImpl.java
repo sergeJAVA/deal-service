@@ -91,6 +91,63 @@ public class DealContractorServiceImpl implements DealContractorService {
 
     @Override
     @Transactional
+    public DealContractorDto saveDealContractorWithUserId(DealContractorRequest request, String userId) {
+        Deal deal = dealRepository.findByIdAndIsActiveTrue(request.getDealId())
+                .orElseThrow(() -> new DealContractorException("Deal с id <<" + request.getDealId() + ">> не найдена или неактивна."));
+
+
+        if (request.getId() != null) {
+            List<DealContractor> dealContractorList = dealContractorRepository.findAllByDealIdAndIsActiveTrue(request.getDealId());
+
+            Optional<DealContractor> existingDealContractor = dealContractorList
+                    .stream()
+                    .filter(dc -> dc.getId().equals(request.getId()))
+                    .findFirst();
+
+            if (existingDealContractor.isPresent()) {
+                DealContractor updatedDealContractor = existingDealContractor.get();
+                updatedDealContractor.setDeal(deal);
+                updatedDealContractor.setContractorId(request.getContractorId());
+                updatedDealContractor.setName(request.getName());
+                updatedDealContractor.setModifyUserId(userId);
+
+                if (request.getInn() != null) {
+                    updatedDealContractor.setInn(request.getInn());
+                }
+
+                if (request.getMain() && updatedDealContractor.getMain().equals(Boolean.FALSE)) {
+                    updatedDealContractor.setMain(Boolean.TRUE);
+                    // реализовать дальнейшую логику, т.к только один контрагент у сделки может иметь main = true
+                    dealContractorRepository.updateAllOthersMainToFalseForDeal(deal.getId(), updatedDealContractor.getId());
+                } else if (request.getMain().equals(Boolean.FALSE) && updatedDealContractor.getMain().equals(Boolean.TRUE)) {
+                    updatedDealContractor.setMain(Boolean.FALSE);
+                }
+
+                return DealContractorMapper.toDto(updatedDealContractor);
+            } else {
+                throw new DealContractorException("DealContractor с id <<" + request.getId() + ">> не найден или неактивен.");
+            }
+        }
+        DealContractor dealContractor = new DealContractor();
+        dealContractor.setDeal(deal);
+        dealContractor.setContractorId(request.getContractorId());
+        dealContractor.setName(request.getName());
+        dealContractor.setCreateDate(LocalDateTime.now());
+        dealContractor.setCreateUserId(userId);
+        if (request.getInn() != null) {
+            dealContractor.setInn(request.getInn());
+        }
+        if (request.getMain()) {
+            dealContractor.setMain(Boolean.TRUE);
+        }
+
+        DealContractor savedDealContractor = dealContractorRepository.save(dealContractor);
+
+        return DealContractorMapper.toDto(savedDealContractor);
+    }
+
+    @Override
+    @Transactional
     public void deleteDealContractor(UUID id) {
         DealContractor dealContractor = dealContractorRepository.findById(id)
                 .orElseThrow(() -> new DealContractorException("DealContractor с id <<" + id + ">> не найден."));
