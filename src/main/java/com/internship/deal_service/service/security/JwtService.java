@@ -52,7 +52,7 @@ public class JwtService {
      * @return Имя пользователя в формате {@link String}.
      */
     public String getUserNameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
+        return getClaimFromToken(token, claims -> claims.get("username", String.class));
     }
 
     /**
