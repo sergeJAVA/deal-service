@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: deal-service
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: root
+    password: pass
   datasource:
     url: jdbc:postgresql://localhost:5435/dealDB
     username: root
