@@ -1,6 +1,7 @@
 package com.example.deal_service.controller;
 
-import com.internship.deal_service.controller.DealController;
+import com.example.deal_service.testcontainer.TestContainer;
+import com.internship.deal_service.DealServiceApplication;
 import com.internship.deal_service.exception.DealException;
 import com.internship.deal_service.model.DealRequest;
 import com.internship.deal_service.model.dto.DealSearchRequest;
@@ -13,12 +14,14 @@ import com.internship.deal_service.service.DealService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,8 +40,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(DealController.class)
-class DealControllerTest {
+@SpringBootTest(classes = DealServiceApplication.class)
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class DealControllerTest extends TestContainer {
 
     @Autowired
     private MockMvc mockMvc;

@@ -13,8 +13,6 @@ public class ContractorRequestRabbit {
 
     private String name;
 
-    private Boolean main;
-
     private String inn;
 
     private String createUserId;

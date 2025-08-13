@@ -1,0 +1,22 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: deal-service
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: root
+    password: pass
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.yaml
+#    drop-first: true
+
+jwt:
+  secret: secretkeyPasswordForAuth12312312312313213123123sdfsdf
