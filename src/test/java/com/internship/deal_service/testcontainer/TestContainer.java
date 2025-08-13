@@ -1,4 +1,4 @@
-package com.example.deal_service.testcontainer;
+package com.internship.deal_service.testcontainer;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;

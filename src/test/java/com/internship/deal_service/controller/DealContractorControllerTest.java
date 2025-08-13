@@ -1,7 +1,7 @@
-package com.example.deal_service.controller;
+package com.internship.deal_service.controller;
 
 
-import com.example.deal_service.testcontainer.TestContainer;
+import com.internship.deal_service.testcontainer.TestContainer;
 import com.internship.deal_service.DealServiceApplication;
 import com.internship.deal_service.exception.DealContractorException;
 import com.internship.deal_service.model.dto.DealContractorRequest;
