@@ -56,6 +56,13 @@ databaseChangeLog:
         encoding: UTF-8
         relativeToChangeLogFile: true
   - changeSet:
+      id: create-contractor-table
+      author: sergej
+      sqlFile:
+        path: 009_create_contractor_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
       id: load-currency-data
       author: sergej
       changes:
