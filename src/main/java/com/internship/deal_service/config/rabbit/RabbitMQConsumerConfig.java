@@ -46,7 +46,7 @@ public class RabbitMQConsumerConfig {
     @Bean
     public Queue dealsDeadContractorQueue() {
         return QueueBuilder.durable("deals_dead_contractor_queue")
-                .withArgument("x-message-ttl", 10000)
+                .withArgument("x-message-ttl", 300000)
                 .withArgument("x-dead-letter-exchange", "deals_dead_contractor_exchange")
                 .withArgument("x-dead-letter-routing-key", "retry.contractor")
                 .build();
