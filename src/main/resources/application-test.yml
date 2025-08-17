@@ -17,6 +17,8 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/changelog-master.yaml
 #    drop-first: true
+scheduling:
+  enabled: false
 
 jwt:
   secret: secretkeyPasswordForAuth12312312312313213123123sdfsdf

@@ -63,6 +63,13 @@ databaseChangeLog:
         encoding: UTF-8
         relativeToChangeLogFile: true
   - changeSet:
+      id: create-inbox-messages-table
+      author: sergej
+      sqlFile:
+        path: 010_create_inbox_message_table.sql
+        encoding: UTF-8
+        relativeToChangeLogFile: true
+  - changeSet:
       id: load-currency-data
       author: sergej
       changes:

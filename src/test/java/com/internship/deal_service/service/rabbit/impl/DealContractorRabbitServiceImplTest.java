@@ -1,6 +1,5 @@
 package com.internship.deal_service.service.rabbit.impl;
 
-import com.internship.deal_service.exception.DealContractorException;
 import com.internship.deal_service.model.DealContractor;
 import com.internship.deal_service.model.dto.ContractorRequestRabbit;
 import com.internship.deal_service.model.dto.DealContractorDto;
@@ -123,19 +122,15 @@ class DealContractorRabbitServiceImplTest {
     }
 
     @Test
-    void saveDealContractorWithUserId_NoExistingContractor_ThrowsException() {
+    void saveDealContractorWithUserId_NoExistingContractor() {
         when(dealContractorRepository.findByContractorIdAndIsActiveTrue(testRequest.getContractorId()))
                 .thenReturn(Collections.emptyList());
 
-        DealContractorException exception = assertThrows(DealContractorException.class, () -> {
-            dealContractorRabbitService.saveDealContractorWithUserId(testRequest);
-        });
-
-        String expectedMessage = "DealContractor with contractorId <<" + testRequest.getContractorId() + ">> doesn't exist or is not active.";
-        assertEquals(expectedMessage, exception.getMessage());
+        DealContractorDto dto = dealContractorRabbitService.saveDealContractorWithUserId(testRequest);
 
         verify(dealContractorRepository, times(1)).findByContractorIdAndIsActiveTrue(testRequest.getContractorId());
         verify(dealContractorRepository, never()).save(any(DealContractor.class));
+        assertNull(dto);
     }
 
 }

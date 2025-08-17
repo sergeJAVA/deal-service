@@ -1,6 +1,5 @@
 package com.internship.deal_service.service.rabbit.impl;
 
-import com.internship.deal_service.exception.DealContractorException;
 import com.internship.deal_service.model.DealContractor;
 import com.internship.deal_service.model.dto.ContractorRequestRabbit;
 import com.internship.deal_service.model.dto.DealContractorDto;
@@ -8,6 +7,7 @@ import com.internship.deal_service.model.mapper.DealContractorMapper;
 import com.internship.deal_service.repository.DealContractorRepository;
 import com.internship.deal_service.service.rabbit.DealContractorRabbitService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DealContractorRabbitServiceImpl implements DealContractorRabbitService {
 
     private final DealContractorRepository dealContractorRepository;
@@ -39,11 +40,11 @@ public class DealContractorRabbitServiceImpl implements DealContractorRabbitServ
             if (request.getInn() != null) {
                 updatedDealContractor.setInn(request.getInn());
             }
-
             return DealContractorMapper.toDto(updatedDealContractor);
 
         } else {
-            throw new DealContractorException("DealContractor with contractorId <<" + request.getContractorId() + ">> doesn't exist or is not active.");
+            log.warn("DealContractor with contractorId <<{}>> doesn't exist or is not active.", request.getContractorId());
+            return null;
         }
     }
 

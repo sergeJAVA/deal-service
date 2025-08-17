@@ -1,71 +1,64 @@
 package com.internship.deal_service.service.rabbit;
 
-import com.internship.deal_service.event.Contractor;
-import com.internship.deal_service.exception.DealContractorException;
-import com.internship.deal_service.model.dto.ContractorRequestRabbit;
-import com.internship.deal_service.repository.ContractorRepository;
+import com.internship.deal_service.model.rabbit.InboxMessage;
+import com.internship.deal_service.model.rabbit.MessageStatus;
+import com.internship.deal_service.repository.InboxMessageRepository;
 import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RabbitMQListenerService {
 
-    private final DealContractorRabbitService dealContractorRabbitService;
-    private final ContractorRepository contractorRepository;
+    private final InboxMessageRepository inboxMessageRepository;
 
     @RabbitListener(queues = "deals_contractor_queue", containerFactory = "rabbitListenerContainerFactory")
-    public void processContractorUpdate(Contractor update,
-                                        @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag,
+    public void receiveContractorUpdate(Message message,
                                         Channel channel) throws IOException {
+        UUID messageId = null;
+        long deliveryTag = 0;
         try {
-            log.info("Contractor: {}", update);
-            Optional<Contractor> savedContactor = contractorRepository.findById(update.getId());
-            if (savedContactor.isEmpty()) {
-                contractorRepository.save(update);
-                dealContractorRabbitService.saveDealContractorWithUserId(toContractorRequest(update));
-            } else {
-                Contractor contractor = savedContactor.get();
-                if (update.getModifyDate().isBefore(contractor.getModifyDate())) {
-                    log.warn("Contractor entry is outdated and the entity will not be updated");
-                    channel.basicAck(deliveryTag, false);
-                    return;
-                } else {
-                    contractorRepository.save(update);
-                    dealContractorRabbitService.saveDealContractorWithUserId(toContractorRequest(update));
-                }
+            deliveryTag = message.getMessageProperties().getDeliveryTag();
+            String messageIdStr = message.getMessageProperties().getMessageId();
+
+            if (messageIdStr == null) {
+                log.error("Message is missing a messageId. Rejected.");
+                channel.basicReject(deliveryTag, false);
+                return;
             }
 
-            log.info("Contractor updated");
-            channel.basicAck(deliveryTag, false);
-        } catch (DealContractorException exception) {
-            log.warn("DealContractorException: {}", exception.getMessage());
+            messageId = UUID.fromString(messageIdStr);
+
+            if (inboxMessageRepository.existsById(messageId)) {
+                log.warn("Duplicate message received with id: {}. Acknowledging and ignoring.", messageId);
+                channel.basicAck(deliveryTag, false);
+                return;
+            }
+
+            String payload = new String(message.getBody(), StandardCharsets.UTF_8);
+
+            InboxMessage inboxMessage = InboxMessage.builder()
+                    .messageId(messageId)
+                    .payload(payload)
+                    .status(MessageStatus.RECEIVED)
+                    .build();
+
+            inboxMessageRepository.save(inboxMessage);
+            log.info("Message with id: {} saved to inbox.", messageId);
+
             channel.basicAck(deliveryTag, false);
         } catch (Exception e) {
-            log.error("An error occurred during processing Contractor. Exception message: {}", e.getMessage(), e);
+            log.error("Failed to save message to inbox.", e);
             channel.basicReject(deliveryTag, false);
         }
-    }
-
-    private ContractorRequestRabbit toContractorRequest(Contractor contractor) {
-        return ContractorRequestRabbit.builder()
-                .contractorId(contractor.getId())
-                .name(contractor.getName())
-                .createUserId(contractor.getCreateUserId())
-                .modifyUserId(contractor.getModifyUserId())
-                .inn(contractor.getInn())
-                .createDate(contractor.getCreateDate())
-                .modifyDate(contractor.getModifyDate())
-                .build();
     }
 
 }

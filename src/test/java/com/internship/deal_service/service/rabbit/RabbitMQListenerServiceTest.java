@@ -1,12 +1,8 @@
 package com.internship.deal_service.service.rabbit;
 
-import com.internship.deal_service.event.Contractor;
-import com.internship.deal_service.exception.DealContractorException;
-import com.internship.deal_service.model.dto.ContractorRequestRabbit;
-import com.internship.deal_service.model.dto.DealContractorDto;
-import com.internship.deal_service.repository.ContractorRepository;
+import com.internship.deal_service.model.rabbit.InboxMessage;
+import com.internship.deal_service.repository.InboxMessageRepository;
 import com.rabbitmq.client.Channel;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,13 +10,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,10 +29,7 @@ import static org.mockito.Mockito.when;
 class RabbitMQListenerServiceTest {
 
     @Mock
-    private DealContractorRabbitService dealContractorRabbitService;
-
-    @Mock
-    private ContractorRepository contractorRepository;
+    private InboxMessageRepository inboxMessageRepository;
 
     @Mock
     private Channel channel;
@@ -40,98 +37,64 @@ class RabbitMQListenerServiceTest {
     @InjectMocks
     private RabbitMQListenerService rabbitMQListenerService;
 
-    private Contractor testContractor;
-
-    private Contractor existingContractor;
+    private Message message;
+    private UUID messageId;
 
     @BeforeEach
     void setUp() {
-        testContractor = new Contractor(
-                "testContr",
-                "testParent",
-                "test",
-                "testFullName",
-                "111-222-333",
-                "ogrnTest",
-                "RUS",
-                11,
-                22,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                "system",
-                "system",
-                true
-        );
-
-        existingContractor = new Contractor(
-                "testContr",
-                "testParent",
-                "test",
-                "testFullName",
-                "111-222-333",
-                "ogrnTest",
-                "RUS",
-                11,
-                22,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusDays(1),
-                "system",
-                "system",
-                true
-        );
+        messageId = UUID.randomUUID();
+        MessageProperties props = new MessageProperties();
+        props.setMessageId(messageId.toString());
+        props.setDeliveryTag(1L);
+        message = new Message("test-payload".getBytes(StandardCharsets.UTF_8), props);
     }
 
     @Test
-    @DisplayName("Успешно сохранится Contractor и обновится DealContractor")
-    void processContractorUpdate_Success() throws IOException {
-        when(contractorRepository.findById(any(String.class))).thenReturn(Optional.empty());
-        when(dealContractorRabbitService.saveDealContractorWithUserId(any(ContractorRequestRabbit.class)))
-                .thenReturn(any(DealContractorDto.class));
-        rabbitMQListenerService.processContractorUpdate(testContractor, 1L, channel);
+    @DisplayName("Сообщение успешно сохраняется в Inbox")
+    void receiveContractorUpdate_Success() throws Exception {
+        when(inboxMessageRepository.existsById(messageId)).thenReturn(false);
 
-        verify(contractorRepository, times(1)).save(testContractor);
-        verify(dealContractorRabbitService, times(1)).saveDealContractorWithUserId(any(ContractorRequestRabbit.class));
+        rabbitMQListenerService.receiveContractorUpdate(message, channel);
+
+        verify(inboxMessageRepository, times(1)).save(any(InboxMessage.class));
         verify(channel, times(1)).basicAck(1L, false);
-        verify(channel, times(0)).basicReject(1L, false);
+        verify(channel, never()).basicReject(anyLong(), anyBoolean());
     }
 
     @Test
-    @DisplayName("Contractor и DealContractor не изменятся, т.к. изменения неактуальные")
-    void processContractorUpdate_OutdatedContractor() throws IOException {
-        when(contractorRepository.findById(any(String.class))).thenReturn(Optional.of(existingContractor));
+    @DisplayName("Сообщение без messageId")
+    void receiveContractorUpdate_NoMessageId() throws Exception {
+        MessageProperties props = new MessageProperties();
+        props.setDeliveryTag(1L);
+        Message noIdMessage = new Message("test".getBytes(StandardCharsets.UTF_8), props);
 
-        rabbitMQListenerService.processContractorUpdate(testContractor, 1L, channel);
-
-        verify(contractorRepository, times(0)).save(any(Contractor.class));
-        verify(dealContractorRabbitService, times(0)).saveDealContractorWithUserId(any(ContractorRequestRabbit.class));
-        verify(channel, times(1)).basicAck(1L, false);
-        verify(channel, times(0)).basicReject(1L, false);
-    }
-
-    @Test
-    @DisplayName("Вылетел Exception во время обработки")
-    void processContractorUpdate_ExceptionDuringProcessing() throws IOException {
-        when(contractorRepository.findById(any(String.class))).thenReturn(Optional.empty());
-        doThrow(new RuntimeException("Какая-то ошибка в БД")).when(contractorRepository).save(any(Contractor.class));
-
-        rabbitMQListenerService.processContractorUpdate(testContractor, 1L, channel);
+        rabbitMQListenerService.receiveContractorUpdate(noIdMessage, channel);
 
         verify(channel, times(1)).basicReject(1L, false);
-        verify(contractorRepository, times(1)).save(testContractor);
+        verify(inboxMessageRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Вылетел DealContractorException во время обработки")
-    void processContractorUpdate_DealContractorException() throws IOException {
-        when(contractorRepository.findById(any(String.class))).thenReturn(Optional.empty());
-        doThrow(new DealContractorException("DealContractor'а не существует")).when(dealContractorRabbitService)
-                .saveDealContractorWithUserId(any(ContractorRequestRabbit.class));
+    @DisplayName("Повторное сообщение")
+    void receiveContractorUpdate_Duplicate() throws Exception {
+        when(inboxMessageRepository.existsById(messageId)).thenReturn(true);
 
-        rabbitMQListenerService.processContractorUpdate(testContractor, 1L, channel);
+        rabbitMQListenerService.receiveContractorUpdate(message, channel);
 
-        verify(contractorRepository, times(1)).save(testContractor);
         verify(channel, times(1)).basicAck(1L, false);
-        verify(channel, times(0)).basicReject(1L, false);
+        verify(inboxMessageRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Неожиданное исключение при сохранении")
+    void receiveContractorUpdate_Exception() throws Exception {
+        when(inboxMessageRepository.existsById(messageId)).thenReturn(false);
+        doThrow(new RuntimeException("DB error"))
+                .when(inboxMessageRepository).save(any());
+
+        rabbitMQListenerService.receiveContractorUpdate(message, channel);
+
+        verify(channel, times(1)).basicReject(1L, false);
     }
 
 }
