@@ -26,6 +26,9 @@ spring:
 jwt:
   secret: secretkeyPasswordForAuth12312312312313213123123sdfsdf
 
+schedule:
+  fixed-delay: 4000
+
 logging:
   level:
     org:

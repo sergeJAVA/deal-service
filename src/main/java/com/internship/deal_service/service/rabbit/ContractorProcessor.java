@@ -26,7 +26,7 @@ public class ContractorProcessor {
     private final ContractorRepository contractorRepository;
     private final ObjectMapper objectMapper;
 
-    @Scheduled(fixedDelay = 4000)
+    @Scheduled(fixedDelayString = "${schedule.fixed-delay}")
     public void processInboxMessage() {
         List<InboxMessage> messages = inboxMessageRepository
                 .findFirstByStatusOrderByReceivedAtAsc(MessageStatus.RECEIVED);
