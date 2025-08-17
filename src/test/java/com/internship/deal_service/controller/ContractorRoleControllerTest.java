@@ -1,6 +1,7 @@
-package com.example.deal_service.controller;
+package com.internship.deal_service.controller;
 
-import com.internship.deal_service.controller.ContractorRoleController;
+import com.internship.deal_service.testcontainer.TestContainer;
+import com.internship.deal_service.DealServiceApplication;
 import com.internship.deal_service.exception.ContractorRoleException;
 import com.internship.deal_service.model.dto.ContractorRoleRequest;
 import com.internship.deal_service.model.dto.ContractorRoleDto;
@@ -8,8 +9,10 @@ import com.internship.deal_service.service.ContractorRoleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,8 +27,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ContractorRoleController.class)
-class ContractorRoleControllerTest {
+@SpringBootTest(classes = DealServiceApplication.class)
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class ContractorRoleControllerTest extends TestContainer {
 
 
     @Autowired

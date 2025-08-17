@@ -9,11 +9,6 @@ spring:
     port: 5672
     username: root
     password: pass
-  datasource:
-    url: jdbc:postgresql://localhost:5435/dealDB
-    username: root
-    password: pass
-    driverClassName: org.postgresql.Driver
   jpa:
     show-sql: true
     hibernate:
@@ -22,15 +17,8 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/changelog-master.yaml
 #    drop-first: true
+scheduling:
+  enabled: false
 
 jwt:
   secret: secretkeyPasswordForAuth12312312312313213123123sdfsdf
-
-schedule:
-  fixed-delay: 4000
-
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
