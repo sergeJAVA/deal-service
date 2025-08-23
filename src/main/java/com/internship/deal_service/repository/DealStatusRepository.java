@@ -12,4 +12,6 @@ public interface DealStatusRepository extends JpaRepository<DealStatus, String> 
 
     Optional<DealStatus> findByIdAndIsActiveTrue(String id);
 
+    Optional<DealStatus> findByName(String name);
+
 }

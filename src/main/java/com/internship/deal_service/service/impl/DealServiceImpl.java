@@ -29,6 +29,8 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -61,8 +63,11 @@ public class DealServiceImpl implements DealService {
     private final DealSumRepository dealSumRepository;
     private final CurrencyRepository currencyRepository;
 
+    private static final String DEALS_PREFIX = "deals";
+
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = DEALS_PREFIX, key = "#id", cacheManager = "dealCacheManager")
     public DealDto getDealById(UUID id) {
         Deal deal = dealRepository.findByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new EntityNotFoundException("Deal с id " + id + " не найдена или неактивна"));
@@ -71,6 +76,12 @@ public class DealServiceImpl implements DealService {
 
     @Override
     @Transactional
+    @CacheEvict(
+            value = DEALS_PREFIX,
+            key = "#request.id",
+            condition = "#request.id != null",
+            cacheManager = "dealCacheManager"
+    )
     public DealDto saveDeal(DealRequest request) {
         DealType dealType = dealTypeRepository.findByIdAndIsActiveTrue(request.getType().getId())
                 .orElseThrow(() -> new EntityNotFoundException("DealType с id " + request.getType().getId() + " не был найден или неактивен."));
@@ -164,6 +175,12 @@ public class DealServiceImpl implements DealService {
 
     @Override
     @Transactional
+    @CacheEvict(
+            value = DEALS_PREFIX,
+            key = "#request.id",
+            condition = "#request.id != null",
+            cacheManager = "dealCacheManager"
+    )
     public DealDto saveDealWithUserId(DealRequest request, String userId) {
         DealType dealType = dealTypeRepository.findByIdAndIsActiveTrue(request.getType().getId())
                 .orElseThrow(() -> new EntityNotFoundException("DealType с id " + request.getType().getId() + " не был найден или неактивен."));
@@ -259,6 +276,12 @@ public class DealServiceImpl implements DealService {
 
     @Override
     @Transactional
+    @CacheEvict(
+            value = DEALS_PREFIX,
+            key = "#dealId",
+            condition = "#dealId != null",
+            cacheManager = "dealCacheManager"
+    )
     public DealDto changeDealStatus(UUID dealId, DealStatusUpdateRequest request) {
         Deal deal = dealRepository.findByIdAndIsActiveTrue(dealId)
                 .orElseThrow(() -> new DealException("Deal с id <<" + dealId + ">> не найдена или неактивна."));

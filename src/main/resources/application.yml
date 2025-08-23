@@ -29,6 +29,11 @@ jwt:
 schedule:
   fixed-delay: 4000
 
+redis:
+  host: localhost
+  port: 26379
+  password: pass
+
 logging:
   level:
     org:
